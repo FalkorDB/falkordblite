@@ -97,11 +97,15 @@ if os.path.exists(os.path.join(os.path.dirname(__file__), "bin/redis-server")):
         'bin/redis-server'
     )  # pragma: no cover
 
-if os.path.exists(os.path.join(os.path.dirname(__file__), "bin/falkordb.so")):
-    __falkordb_module__ = os.path.join(
-        os.path.dirname(__file__),
-        'bin/falkordb.so'
-    )  # pragma: no cover
+# Check for FalkorDB module in multiple locations
+_falkordb_locations = [
+    os.path.join(os.path.dirname(__file__), "bin/falkordb.so"),  # Installed location
+    os.path.join(os.path.dirname(os.path.dirname(__file__)), "falkordb.so"),  # Source/build location
+]
+for _location in _falkordb_locations:
+    if os.path.exists(_location):
+        __falkordb_module__ = _location
+        break  # pragma: no cover
 
 __all__ = ['client', 'configuration', 'debug', 'patch', 'falkordb_client']
 

@@ -21,6 +21,7 @@ graft redis.submodule/utils
 
 include src/dummy.c
 include redislite/package_metadata.json
+include falkordb.so
 recursive-include redislite/bin *
 
 exclude *dummy.o
