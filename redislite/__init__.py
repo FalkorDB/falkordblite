@@ -61,12 +61,14 @@ __source_url__ = str('')
 __redis_server_info__ = {}
 __redis_executable__ = str('')
 __redis_server_version__ = str('')
+__falkordb_module__ = str('')
 
 try:
-    import pkg_resources
-    __git_version__ = pkg_resources.get_distribution("redislite").version
+    # Use importlib.metadata instead of deprecated pkg_resources
+    from importlib.metadata import version
+    __git_version__ = version("redislite")
     __version__ = __git_version__
-except ImportError:  # pragma: no cover
+except (ImportError, Exception):  # pragma: no cover
     pass
     
 
@@ -90,12 +92,68 @@ if os.path.exists(_metadata_file):  # pragma: no cover
         __redis_server_info__ = _package_metadata['redis_server']
         __redis_server_version__ = __redis_server_info__.get('v', str(''))
 
+# Auto-copy binaries from build directory for editable installs
+def _ensure_binaries():
+    """Ensure redis-server and falkordb.so are in redislite/bin/ for editable installs"""
+    bin_dir = os.path.join(os.path.dirname(__file__), 'bin')
+    
+    # Check if binaries already exist
+    if os.path.exists(os.path.join(bin_dir, 'redis-server')) and \
+       os.path.exists(os.path.join(bin_dir, 'falkordb.so')):
+        return  # All good
+    
+    # Try to find and copy from build directory
+    base_dir = os.path.dirname(os.path.dirname(__file__))
+    build_dirs = [
+        os.path.join(base_dir, 'build', f'scripts-{v[0]}.{v[1]}') 
+        for v in [(__import__('sys').version_info.major, __import__('sys').version_info.minor)]
+    ]
+    build_dirs.append(os.path.join(base_dir, 'build', 'scripts'))
+    
+    for build_dir in build_dirs:
+        if not os.path.exists(build_dir):
+            continue
+        
+        redis_server = os.path.join(build_dir, 'redis-server')
+        falkordb_so = os.path.join(build_dir, 'falkordb.so')
+        
+        if os.path.exists(redis_server) and os.path.exists(falkordb_so):
+            # Create bin directory
+            if not os.path.exists(bin_dir):
+                os.makedirs(bin_dir, 0o755)
+            
+            # Copy binaries
+            import shutil
+            for binary in ['redis-server', 'redis-cli', 'falkordb.so']:
+                src = os.path.join(build_dir, binary)
+                dst = os.path.join(bin_dir, binary)
+                if os.path.exists(src) and not os.path.exists(dst):
+                    shutil.copy2(src, dst)
+                    os.chmod(dst, 0o755)
+            break
+
+try:
+    _ensure_binaries()
+except Exception:  # pragma: no cover
+    pass  # Don't fail import if binary copy fails
+
 if os.path.exists(os.path.join(os.path.dirname(__file__), "bin/redis-server")):
     __redis_executable__ = os.path.join(
         os.path.dirname(__file__),
         'bin/redis-server'
     )  # pragma: no cover
 
-__all__ = ['client', 'configuration', 'debug', 'patch']
+# Check for FalkorDB module in multiple locations
+_falkordb_locations = [
+    os.path.join(os.path.dirname(__file__), "bin/falkordb.so"),  # Installed location
+    os.path.join(os.path.dirname(os.path.dirname(__file__)), "falkordb.so"),  # Source/build location
+]
+for _location in _falkordb_locations:
+    if os.path.exists(_location):
+        __falkordb_module__ = _location
+        break  # pragma: no cover
+
+__all__ = ['client', 'configuration', 'debug', 'patch', 'falkordb_client']
 
 from .client import Redis, StrictRedis  # NOQA
+from .falkordb_client import FalkorDB, Graph  # NOQA

@@ -24,6 +24,7 @@ import time
 import sys
 from . import configuration
 from . import __redis_executable__
+from . import __falkordb_module__
 
 
 logger = logging.getLogger(__name__)  # pylint: disable=C0103
@@ -210,6 +211,12 @@ class RedisMixin(object):
         if not redis_executable:  # pragma: no cover
             redis_executable = 'redis-server'
         command = [redis_executable, self.redis_configuration_filename]
+        
+        # Load FalkorDB module if available
+        if __falkordb_module__ and os.path.exists(__falkordb_module__):
+            command.extend(['--loadmodule', __falkordb_module__])
+            logger.debug('Loading FalkorDB module: %s', __falkordb_module__)
+        
         logger.debug('Running: %s', ' '.join(command))
         rc = subprocess.call(command)
         if rc:  # pragma: no cover

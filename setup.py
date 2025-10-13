@@ -11,6 +11,7 @@ import subprocess
 
 from setuptools import setup
 from setuptools.command.install import install
+from setuptools.command.develop import develop
 import shutil
 import sys
 import urllib.request
@@ -29,8 +30,9 @@ METADATA_FILENAME = 'redislite/package_metadata.json'
 BASEPATH = os.path.dirname(os.path.abspath(__file__))
 REDIS_PATH = os.path.join(BASEPATH, 'redis.submodule')
 REDIS_SERVER_METADATA = {}
-REDIS_VERSION = os.environ.get('REDIS_VERSION', '6.2.14')
+REDIS_VERSION = os.environ.get('REDIS_VERSION', '8.2.2')
 REDIS_URL = f'http://download.redis.io/releases/redis-{REDIS_VERSION}.tar.gz'
+FALKORDB_VERSION = os.environ.get('FALKORDB_VERSION', 'v4.14.2')
 install_scripts = ''
 try:
     VERSION = check_output(['meta', 'get', 'package.version']).decode(errors='ignore')
@@ -57,8 +59,60 @@ def download_redis_submodule():
         # os.system('(cd redis.submodule;./deps/update-jemalloc.sh 4.0.4)')
 
 
+def download_falkordb_module():
+    """Download FalkorDB module binary from GitHub releases"""
+    # Determine the architecture and select appropriate module
+    import platform
+    machine = platform.machine().lower()
+    
+    if machine in ['x86_64', 'amd64']:
+        module_name = 'falkordb-x64.so'
+    elif machine in ['aarch64', 'arm64']:
+        module_name = 'falkordb-arm64v8.so'
+    else:
+        raise Exception(f'Unsupported architecture: {machine}')
+    
+    falkordb_url = f'https://github.com/FalkorDB/FalkorDB/releases/download/{FALKORDB_VERSION}/{module_name}'
+    module_path = os.path.join(BASEPATH, 'falkordb.so')
+    
+    print(f'Downloading FalkorDB module from {falkordb_url}')
+    try:
+        urllib.request.urlretrieve(falkordb_url, module_path)
+        print(f'FalkorDB module downloaded to {module_path}')
+    except Exception as e:
+        print(f'Failed to download FalkorDB module: {e}')
+        raise
+
+
 class BuildRedis(build):
     global REDIS_SERVER_METADATA
+
+    def _copy_binaries_to_source(self):
+        """Copy built binaries to redislite/bin/ in the source directory for editable installs"""
+        if not self.build_scripts or not os.path.exists(self.build_scripts):
+            logger.warning('Build scripts directory not found, skipping binary copy to source')
+            return
+        
+        # Create redislite/bin in the source directory
+        source_bin = os.path.join(BASEPATH, 'redislite', 'bin')
+        if not os.path.exists(source_bin):
+            os.makedirs(source_bin, 0o0755)
+            logger.debug('Created directory: %s', source_bin)
+        
+        binaries = ['redis-server', 'redis-cli', 'falkordb.so']
+        
+        for binary in binaries:
+            src = os.path.join(self.build_scripts, binary)
+            dst = os.path.join(source_bin, binary)
+            if os.path.exists(src):
+                shutil.copy2(src, dst)
+                os.chmod(dst, 0o755)
+                logger.debug('Copied and set permissions: %s -> %s', src, dst)
+        
+        print('*' * 80)
+        print('Binaries copied to redislite/bin/ for editable install')
+        print(f'  Location: {source_bin}')
+        print('*' * 80)
 
     def run(self):
         # run original build code
@@ -98,6 +152,81 @@ class BuildRedis(build):
             for target in target_files:
                 logger.debug('copy: %s -> %s', target, self.build_scripts)
                 self.copy_file(target, self.build_scripts)
+            
+            # Copy FalkorDB module if it exists
+            falkordb_module = os.path.join(BASEPATH, 'falkordb.so')
+            if os.path.exists(falkordb_module):
+                logger.debug('copy: %s -> %s', falkordb_module, self.build_scripts)
+                self.copy_file(falkordb_module, self.build_scripts)
+                # Set executable permissions on the FalkorDB module
+                dest_falkordb = os.path.join(self.build_scripts, 'falkordb.so')
+                os.chmod(dest_falkordb, 0o755)
+                logger.debug('Set executable permissions on %s', dest_falkordb)
+            
+            # Also copy binaries to source directory for editable installs
+            self._copy_binaries_to_source()
+
+
+class PostBuildCopyBinaries:
+    """Mixin to copy binaries to redislite/bin/ for editable installs"""
+    
+    def copy_binaries_to_source(self):
+        """Copy built binaries to redislite/bin/ in the source directory"""
+        # Determine the build_scripts directory
+        build_cmd = self.get_finalized_command('build')
+        build_scripts = build_cmd.build_scripts
+        
+        if not build_scripts or not os.path.exists(build_scripts):
+            logger.warning('Build scripts directory not found, skipping binary copy')
+            return
+        
+        # Create redislite/bin in the source directory
+        source_bin = os.path.join(BASEPATH, 'redislite', 'bin')
+        if not os.path.exists(source_bin):
+            os.makedirs(source_bin, 0o0755)
+            logger.debug('Created directory: %s', source_bin)
+        
+        # Copy redis-server
+        redis_server_src = os.path.join(build_scripts, 'redis-server')
+        redis_server_dst = os.path.join(source_bin, 'redis-server')
+        if os.path.exists(redis_server_src):
+            shutil.copy2(redis_server_src, redis_server_dst)
+            os.chmod(redis_server_dst, 0o755)
+            logger.debug('Copied and set permissions: %s -> %s', redis_server_src, redis_server_dst)
+        
+        # Copy redis-cli
+        redis_cli_src = os.path.join(build_scripts, 'redis-cli')
+        redis_cli_dst = os.path.join(source_bin, 'redis-cli')
+        if os.path.exists(redis_cli_src):
+            shutil.copy2(redis_cli_src, redis_cli_dst)
+            os.chmod(redis_cli_dst, 0o755)
+            logger.debug('Copied and set permissions: %s -> %s', redis_cli_src, redis_cli_dst)
+        
+        # Copy FalkorDB module
+        falkordb_src = os.path.join(build_scripts, 'falkordb.so')
+        falkordb_dst = os.path.join(source_bin, 'falkordb.so')
+        if os.path.exists(falkordb_src):
+            shutil.copy2(falkordb_src, falkordb_dst)
+            os.chmod(falkordb_dst, 0o755)
+            logger.debug('Copied and set permissions: %s -> %s', falkordb_src, falkordb_dst)
+        
+        print('*' * 80)
+        print('Binaries copied to redislite/bin/ for editable install')
+        print(f'  redis-server: {redis_server_dst}')
+        print(f'  redis-cli: {redis_cli_dst}')
+        print(f'  falkordb.so: {falkordb_dst}')
+        print('*' * 80)
+
+
+class DevelopRedis(PostBuildCopyBinaries, develop):
+    """Custom develop command for editable installs"""
+    
+    def run(self):
+        # Run the standard develop installation
+        develop.run(self)
+        
+        # Copy binaries to source directory for editable installs
+        self.copy_binaries_to_source()
 
 
 class InstallRedis(install):
@@ -130,6 +259,13 @@ class InstallRedis(install):
         )
         self.copy_tree(self.build_scripts, self.install_scripts)
 
+        # Set executable permissions on FalkorDB module after installation
+        for install_dir in [module_bin, self.install_scripts]:
+            falkordb_path = os.path.join(install_dir, 'falkordb.so')
+            if os.path.exists(falkordb_path):
+                os.chmod(falkordb_path, 0o755)
+                logger.debug('Set executable permissions on %s', falkordb_path)
+
         install_scripts = self.install_scripts
         print('install_scripts: %s' % install_scripts)
         md_file = os.path.join(
@@ -160,12 +296,13 @@ class InstallRedis(install):
 #  without running setup() to allow external scripts to see the setup settings.
 args = {
     'package_data': {
-        'redislite': ['package_metadata.json', 'bin/redis-server'],
+        'redislite': ['package_metadata.json', 'bin/redis-server', 'bin/falkordb.so'],
     },
     'include_package_data': True,
     'cmdclass': {
         'build': BuildRedis,
         'install': InstallRedis,
+        'develop': DevelopRedis,
     },
 
     # We put in a bogus extension module so wheel knows this package has
@@ -275,6 +412,12 @@ if __name__ == '__main__':
     if not os.path.exists(REDIS_PATH):
         logger.debug(f'Downloading redis version {REDIS_VERSION}')
         download_redis_submodule()
+    
+    # Download FalkorDB module if not present
+    falkordb_module = os.path.join(BASEPATH, 'falkordb.so')
+    if not os.path.exists(falkordb_module):
+        logger.debug(f'Downloading FalkorDB version {FALKORDB_VERSION}')
+        download_falkordb_module()
 
     logger.debug('Building for platform: %s', distutils.util.get_platform())
 

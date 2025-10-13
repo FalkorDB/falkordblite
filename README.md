@@ -1,42 +1,51 @@
-# Redislite
+# FalkorDBLite
 
 [![CI/CD](https://img.shields.io/badge/CI/CD-Screwdriver-blue.svg)](https://screwdriver.cd/)
 [![Build Status](https://cd.screwdriver.cd/pipelines/2880/badge)](https://cd.screwdriver.cd/pipelines/2880)
 [![Codestyle](https://img.shields.io/badge/code%20style-pep8-blue.svg)](https://www.python.org/dev/peps/pep-0008/)
 [![Coverage](https://codecov.io/gh/yahoo/redislite/branch/master/graph/badge.svg)](https://codecov.io/gh/yahoo/redislite)
-[![Current Version](https://img.shields.io/pypi/v/redislite.svg)](https://pypi.python.org/pypi/redislite/)
-[![Supported Python](https://img.shields.io/badge/python-3.6,3.7,3.8-blue.svg)](https://pypi.python.org/pypi/redislite/)
 [![License](https://img.shields.io/pypi/l/redislite.svg)](https://pypi.python.org/pypi/redislite/)
-[![Documentation](https://readthedocs.org/projects/redislite/badge/?version=latest)](http://redislite.readthedocs.org/en/latest/)
-
 
 ## Description
 
-Redislite is a self contained Python interface to the Redis key-value store.
+FalkorDBLite is a self-contained Python interface to the FalkorDB graph database.
 
-It provides enhanced versions of the Redis-Py Python bindings for Redis.  That provide the following added functionality:
+It provides enhanced versions of the Redis-Py Python bindings with FalkorDB graph database functionality.  Key features include:
 
-* **Easy to use** - It provides a built in Redis server that is automatically installed, configured and managed when the Redis bindings are used.
-* **Flexible** - Create a single server shared by multiple programs or multiple independent servers.  All the servers provided by Redislite support all Redis functionality including advanced features such as replication and clustering.
-* **Compatible** - It provides enhanced versions of the Redis-Py python Redis bindings as well as functions to patch them to allow most existing code that uses them to run with little or no modifications.
-* **Secure** - It uses a secure default Redis configuraton that is only accessible by the creating user on the computer system it is run on.
+* **Easy to use** - It provides a built-in Redis server with FalkorDB module that is automatically installed, configured and managed when the bindings are used.
+* **Graph Database** - Full support for FalkorDB graph operations using Cypher queries through a simple Python API.
+* **Flexible** - Create a single server shared by multiple programs or multiple independent servers with graph capabilities.
+* **Compatible** - Provides both Redis key-value operations and FalkorDB graph operations in a unified interface.
+* **Secure** - Uses a secure default Redis configuration that is only accessible by the creating user on the computer system it is run on.
 
 ## Requirements
 
-The redislite module requires Python 3.6 or higher.
+The falkordblite module requires Python 3.8 or higher.
 
+### Python Dependencies
 
-### Installing requirements on Linux
+The package requires the following Python packages:
+- `redis>=4.5` - Redis Python client
+- `psutil` - Process and system utilities
+- `setuptools>38.0` - Build system
 
-Make sure Python development headers are available when installing redislite.
+These are automatically installed when using `pip install` or by installing from `requirements.txt`.
+
+### System Requirements on Linux
+
+Make sure Python development headers and build tools are available when building from source.
 
 On Ubuntu/Debian systems, install them with:
 
-`apt-get install python-dev`
+```bash
+apt-get install python3-dev build-essential
+```
 
 On Redhat/Fedora systems, install them with:
 
-`yum install python-devel`
+```bash
+yum install python3-devel gcc make
+```
 
 ### Installing requirements on Mac OSX
 
@@ -62,39 +71,114 @@ Then start the bash shell and install the python-dev package as follows:
     
 ## Installation
 
-To install redislite, simply:
+To install falkordblite, simply:
 
 ```console
-$ pip install redislite
+$ pip install falkordblite
 ```
 
 or from source:
 
 ```console
+$ pip install -r requirements.txt
 $ python setup.py install
 ```
+
+### Verifying Installation
+
+After installation, you can verify that everything is working correctly:
+
+```console
+$ python verify_install.py
+```
+
+This will test:
+- Package imports
+- FalkorDB instance creation
+- Basic graph operations
+
+### Development Installation
+
+For development or working from source in a virtual environment:
+
+```console
+# Create and activate a virtual environment
+$ python3 -m venv venv
+$ source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install build dependencies
+$ pip install setuptools wheel
+
+# Install runtime dependencies
+$ pip install -r requirements.txt
+
+# Build the project (this compiles Redis and copies binaries automatically)
+$ python setup.py build
+
+# Install in editable mode for development
+$ pip install -e .
+```
+
+The `python setup.py build` command will:
+- Compile Redis from source
+- Download the FalkorDB module
+- Automatically copy binaries to `redislite/bin/` with proper permissions
+
+**Note:** If you encounter issues, see [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for details.
 
 
 ## Getting Started
 
-redislite provides enhanced versions of the redis-py redis.Redis() and 
-redis.StrictRedis() classes that take the same arguments as the corresponding
-redis classes and take one additional optional argument.  Which is the
-name of the Redis rdb file to use.  If the argument is not provided it will
-create set up a new redis server.
+FalkorDBLite provides two main interfaces:
 
-redislite also provides functions to MonkeyPatch the redis.Redis and 
-redis.StrictRedis classes to use redislite, so existing python code that uses
-Redis can use the redislite version.
+1. **FalkorDB Graph API** - A graph database interface using Cypher queries
+2. **Redis API** - Traditional Redis key-value operations (via redislite compatibility)
+
+The package includes both Redis and the FalkorDB module, automatically configured and managed.
     
 ## Examples
 
-Here are some examples of using the redislite module.
+Here are some examples of using the falkordblite module.
 
-### Setting a value
+### Using FalkorDB Graph Database
 
-Here we open a Python shell and set a key in our embedded Redis db.  Redislite will automatically start the Redis server when
-the Redis() object is created and shut it down cleanly when the Python interpreter exits.
+Here we create a graph database, add some nodes and relationships, and query them using Cypher:
+
+```python
+>>> from redislite.falkordb_client import FalkorDB
+>>> 
+>>> # Create a FalkorDB instance with embedded Redis + FalkorDB
+>>> db = FalkorDB('/tmp/falkordb.db')
+>>> 
+>>> # Select a graph
+>>> g = db.select_graph('social')
+>>> 
+>>> # Create nodes with Cypher
+>>> result = g.query('CREATE (p:Person {name: "Alice", age: 30}) RETURN p')
+>>> result = g.query('CREATE (p:Person {name: "Bob", age: 25}) RETURN p')
+>>> 
+>>> # Create a relationship
+>>> result = g.query('''
+...     MATCH (a:Person {name: "Alice"}), (b:Person {name: "Bob"})
+...     CREATE (a)-[r:KNOWS]->(b)
+...     RETURN r
+... ''')
+>>> 
+>>> # Query the graph
+>>> result = g.query('MATCH (p:Person) RETURN p.name, p.age')
+>>> for row in result.result_set:
+...     print(row)
+>>> 
+>>> # Read-only query
+>>> result = g.ro_query('MATCH (p:Person)-[r:KNOWS]->(f) RETURN p.name, f.name')
+>>> 
+>>> # Delete the graph when done
+>>> g.delete()
+```
+
+### Using Redis Key-Value Operations
+
+You can still use traditional Redis operations alongside graph operations:
 
 ```python
 >>> from redislite import Redis
@@ -104,21 +188,24 @@ the Redis() object is created and shut it down cleanly when the Python interpret
 >>> redis_connection.set('key', 'value')
 True
 >>> redis_connection.get('key')
-'value'
+b'value'
 ```
 
 ### Persistence
 
-Now we open the same Redis db and access the key we created during the last run.  Redislite will automatically start the
-Redis server using the same configuration as last time, so the value that was set in the previous example is still available.
+FalkorDB data persists between sessions. Open the same database file to access previously stored graphs:
 
 ```python
->>> from redislite import Redis
->>> redis_connection = Redis('/tmp/redis.db')
->>> redis_connection.keys()
-['key']
->>> redis_connection.get('key')
-'value'
+>>> from redislite.falkordb_client import FalkorDB
+>>> 
+>>> # Open the same database
+>>> db = FalkorDB('/tmp/falkordb.db')
+>>> g = db.select_graph('social')
+>>> 
+>>> # Data from previous session is still there
+>>> result = g.query('MATCH (p:Person) RETURN p.name')
+>>> for row in result.result_set:
+...     print(row)
 ```
 
 ## Compatibility
@@ -198,10 +285,66 @@ True
 >>>
 ```
 
+## FalkorDB-Specific Features
+
+### Graph Database with Cypher Queries
+
+FalkorDBLite provides full support for graph database operations using Cypher queries:
+
+```python
+>>> from redislite.falkordb_client import FalkorDB
+>>> 
+>>> db = FalkorDB('/tmp/graphs.db')
+>>> g = db.select_graph('social')
+>>> 
+>>> # Create a graph with nodes and relationships
+>>> g.query('''
+...     CREATE (alice:Person {name: "Alice", age: 30}),
+...            (bob:Person {name: "Bob", age: 25}),
+...            (carol:Person {name: "Carol", age: 28}),
+...            (alice)-[:KNOWS]->(bob),
+...            (bob)-[:KNOWS]->(carol),
+...            (alice)-[:KNOWS]->(carol)
+... ''')
+>>> 
+>>> # Find all friends of Alice
+>>> result = g.query('''
+...     MATCH (p:Person {name: "Alice"})-[:KNOWS]->(friend)
+...     RETURN friend.name, friend.age
+... ''')
+>>> for row in result.result_set:
+...     print(f"Friend: {row[0]}, Age: {row[1]}")
+```
+
+### Multiple Graphs
+
+Work with multiple independent graphs in the same database:
+
+```python
+>>> from redislite.falkordb_client import FalkorDB
+>>> 
+>>> db = FalkorDB('/tmp/multi.db')
+>>> 
+>>> # Create different graphs for different domains
+>>> users = db.select_graph('users')
+>>> products = db.select_graph('products')
+>>> transactions = db.select_graph('transactions')
+>>> 
+>>> # Each graph is independent
+>>> users.query('CREATE (u:User {name: "Alice"})')
+>>> products.query('CREATE (p:Product {name: "Laptop"})')
+>>> 
+>>> # List all graphs
+>>> all_graphs = db.list_graphs()
+>>> print(all_graphs)
+```
+
 ## More Information
 
-There is more detailed information on the redislite documentation page at
-http://redislite.readthedocs.org/en/latest/
+FalkorDBLite combines the power of Redis and FalkorDB graph database in an embedded Python package.
 
-Redislite is Free software under the New BSD license, see LICENSE.txt for
-details.
+- FalkorDB: https://www.falkordb.com/
+- FalkorDB Documentation: https://docs.falkordb.com/
+- FalkorDB Python Client: https://github.com/FalkorDB/falkordb-py
+
+FalkorDBLite is Free software under the New BSD license, see LICENSE.txt for details.
