@@ -15,6 +15,9 @@ jobs:
     name: Build and publish to PyPI
     runs-on: ubuntu-latest
     
+    env:
+      REDIS_VERSION: '6.2.14'
+    
     steps:
     - uses: actions/checkout@v4
     
@@ -22,6 +25,12 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: '3.11'
+    
+    - name: Cache Redis submodule
+      uses: actions/cache@v4
+      with:
+        path: redis.submodule
+        key: redis-${{ env.REDIS_VERSION }}
     
     - name: Install build dependencies
       run: |
