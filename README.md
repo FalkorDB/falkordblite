@@ -22,18 +22,30 @@ It provides enhanced versions of the Redis-Py Python bindings with FalkorDB grap
 
 The falkordblite module requires Python 3.8 or higher.
 
+### Python Dependencies
 
-### Installing requirements on Linux
+The package requires the following Python packages:
+- `redis>=4.5` - Redis Python client
+- `psutil` - Process and system utilities
+- `setuptools>38.0` - Build system
 
-Make sure Python development headers are available when installing redislite.
+These are automatically installed when using `pip install` or by installing from `requirements.txt`.
+
+### System Requirements on Linux
+
+Make sure Python development headers and build tools are available when building from source.
 
 On Ubuntu/Debian systems, install them with:
 
-`apt-get install python-dev`
+```bash
+apt-get install python3-dev build-essential
+```
 
 On Redhat/Fedora systems, install them with:
 
-`yum install python-devel`
+```bash
+yum install python3-devel gcc make
+```
 
 ### Installing requirements on Mac OSX
 
@@ -68,6 +80,26 @@ $ pip install falkordblite
 or from source:
 
 ```console
+$ pip install -r requirements.txt
+$ python setup.py install
+```
+
+### Development Installation
+
+For development or working from source in a virtual environment:
+
+```console
+# Create and activate a virtual environment
+$ python3 -m venv venv
+$ source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install build dependencies
+$ pip install setuptools wheel
+
+# Install runtime dependencies
+$ pip install -r requirements.txt
+
+# Build and install
 $ python setup.py install
 ```
 

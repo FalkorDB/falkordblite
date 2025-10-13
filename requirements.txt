@@ -1,0 +1,4 @@
+# Runtime dependencies for falkordblite
+redis>=4.5
+psutil
+setuptools>38.0
