@@ -7,6 +7,7 @@ FalkorDB client wrapper for redislite
 This module provides a FalkorDB-compatible API wrapper around the redislite client
 to enable graph database operations using Cypher queries.
 """
+import json
 from typing import Dict, Optional, List, Any
 from .client import Redis, StrictRedis
 
@@ -54,14 +55,23 @@ class Graph:
         query = q
 
         # Build query command
-        command = ["GRAPH.QUERY", self.name, query, "--compact"]
+        command = ["GRAPH.QUERY", self.name, query]
+
+        # Add parameters if provided
+        if params:
+            command.extend(["PARAMS", str(len(params) * 2)])
+            for key, value in params.items():
+                command.extend([key, json.dumps(value)])
 
         # Include timeout if specified
         if isinstance(timeout, int):
-            command.extend(["timeout", timeout])
+            command.extend(["TIMEOUT", timeout])
         elif timeout is not None:
             raise Exception("Timeout argument must be a positive integer")
 
+        # Add compact flag at the end
+        command.append("--compact")
+        
         # Execute query
         response = self.client.execute_command(*command)
         return QueryResult(response)
@@ -82,14 +92,23 @@ class Graph:
         query = q
 
         # Build query command
-        command = ["GRAPH.RO_QUERY", self.name, query, "--compact"]
+        command = ["GRAPH.RO_QUERY", self.name, query]
+
+        # Add parameters if provided
+        if params:
+            command.extend(["PARAMS", str(len(params) * 2)])
+            for key, value in params.items():
+                command.extend([key, json.dumps(value)])
 
         # Include timeout if specified
         if isinstance(timeout, int):
-            command.extend(["timeout", timeout])
+            command.extend(["TIMEOUT", timeout])
         elif timeout is not None:
             raise Exception("Timeout argument must be a positive integer")
 
+        # Add compact flag at the end
+        command.append("--compact")
+        
         # Execute query
         response = self.client.execute_command(*command)
         return QueryResult(response)
