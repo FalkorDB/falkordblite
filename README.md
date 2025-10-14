@@ -2,11 +2,8 @@
 
 [![CI](https://github.com/FalkorDB/falkordblite/actions/workflows/ci.yml/badge.svg)](https://github.com/FalkorDB/falkordblite/actions/workflows/ci.yml)
 [![Publish to PyPI](https://github.com/FalkorDB/falkordblite/actions/workflows/publish.yml/badge.svg)](https://github.com/FalkorDB/falkordblite/actions/workflows/publish.yml)
-[![CI/CD](https://img.shields.io/badge/CI/CD-Screwdriver-blue.svg)](https://screwdriver.cd/)
-[![Build Status](https://cd.screwdriver.cd/pipelines/2880/badge)](https://cd.screwdriver.cd/pipelines/2880)
-[![Codestyle](https://img.shields.io/badge/code%20style-pep8-blue.svg)](https://www.python.org/dev/peps/pep-0008/)
-[![Coverage](https://codecov.io/gh/yahoo/redislite/branch/master/graph/badge.svg)](https://codecov.io/gh/yahoo/redislite)
-[![License](https://img.shields.io/pypi/l/redislite.svg)](https://pypi.python.org/pypi/redislite/)
+[![Coverage](https://codecov.io/gh/FalkorDB/falkordblite/branch/master/graph/badge.svg)](https://codecov.io/gh/FalkorDB/falkordblite)
+[![License](https://img.shields.io/pypi/l/falkordblite.svg)](https://pypi.python.org/pypi/falkordblite/)
 
 ## Description
 
