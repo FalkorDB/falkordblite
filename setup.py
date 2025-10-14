@@ -60,30 +60,28 @@ def download_redis_submodule():
 
 
 def download_and_build_falkordb():
-    """Download and build FalkorDB module from source"""
+    """Clone and build FalkorDB module from source"""
     falkordb_path = os.path.join(BASEPATH, 'FalkorDB')
     
-    # Clone or download FalkorDB source
+    # Remove existing FalkorDB directory if present
     if pathlib.Path(falkordb_path).exists():
         shutil.rmtree(falkordb_path)
     
-    falkordb_url = f'https://github.com/FalkorDB/FalkorDB/archive/refs/tags/{FALKORDB_VERSION}.tar.gz'
-    
-    with tempfile.TemporaryDirectory() as tempdir:
-        print(f'Downloading FalkorDB {FALKORDB_VERSION} from {falkordb_url}')
-        try:
-            ftpstream = urllib.request.urlopen(falkordb_url)
-            tf = tarfile.open(fileobj=ftpstream, mode="r|gz")
-            directory = tf.next().name
-            
-            print(f'Extracting FalkorDB archive {directory}')
-            tf.extractall(tempdir)
-            
-            print(f'Moving {os.path.join(tempdir, directory)} -> FalkorDB')
-            shutil.move(os.path.join(tempdir, directory), falkordb_path)
-        except Exception as e:
-            print(f'Failed to download FalkorDB: {e}')
-            raise
+    # Clone FalkorDB repository with submodules
+    print(f'Cloning FalkorDB {FALKORDB_VERSION}...')
+    try:
+        result = call([
+            'git', 'clone', '--depth', '1', '--recursive',
+            '--branch', FALKORDB_VERSION,
+            'https://github.com/FalkorDB/FalkorDB.git',
+            falkordb_path
+        ])
+        if result != 0:
+            raise Exception(f'Git clone failed with exit code {result}')
+        print(f'FalkorDB cloned to {falkordb_path}')
+    except Exception as e:
+        print(f'Failed to clone FalkorDB: {e}')
+        raise
     
     # Build FalkorDB module
     print('Building FalkorDB module...')
@@ -91,6 +89,7 @@ def download_and_build_falkordb():
     
     try:
         # Run make in the FalkorDB directory
+        print('Running make...')
         result = call(['make'], cwd=falkordb_path)
         if result != 0:
             raise Exception(f'FalkorDB build failed with exit code {result}')
