@@ -45,7 +45,7 @@ jobs:
     - name: Install build dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential gcc g++ make cmake python3-dev git peg libzstd-dev
+        sudo apt-get install -y build-essential gcc g++ make cmake python3-dev git peg libzstd-dev libzstd1
     
     - name: Install Python dependencies
       run: |
