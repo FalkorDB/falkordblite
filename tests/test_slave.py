@@ -22,4 +22,4 @@ class TestRedisliteSlave(unittest.TestCase):
         master.set('key', 'value')
         time.sleep(.5)
         value = slave.get('key').decode(encoding='UTF-8')
-        self.assertEquals(value, 'value')
+        self.assertEqual(value, 'value')
