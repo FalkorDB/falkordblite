@@ -17,6 +17,7 @@ jobs:
     
     env:
       REDIS_VERSION: '6.2.14'
+      FALKORDB_VERSION: 'v4.14.2'
     
     steps:
     - uses: actions/checkout@v4
@@ -32,6 +33,12 @@ jobs:
         path: redis.submodule
         key: redis-${{ env.REDIS_VERSION }}
     
+    - name: Cache FalkorDB module
+      uses: actions/cache@v4
+      with:
+        path: falkordb.so
+        key: falkordb-${{ env.FALKORDB_VERSION }}-${{ runner.arch }}
+    
     - name: Install build dependencies
       run: |
         sudo apt-get update
@@ -39,10 +46,6 @@ jobs:
         python -m pip install --upgrade pip
         pip install setuptools wheel build twine
         pip install -r requirements.txt
-    
-    - name: Download Redis submodule
-      run: |
-        python build_scripts/update_redis_server.py
     
     - name: Build source distribution
       run: |
