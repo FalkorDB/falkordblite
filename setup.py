@@ -59,56 +59,29 @@ def download_redis_submodule():
         # os.system('(cd redis.submodule;./deps/update-jemalloc.sh 4.0.4)')
 
 
-def download_and_build_falkordb():
-    """Clone and build FalkorDB module from source"""
-    falkordb_path = os.path.join(BASEPATH, 'FalkorDB')
+def download_falkordb_module():
+    """Download FalkorDB module binary from GitHub releases"""
+    # Determine the architecture and select appropriate module
+    import platform
+    machine = platform.machine().lower()
     
-    # Remove existing FalkorDB directory if present
-    if pathlib.Path(falkordb_path).exists():
-        shutil.rmtree(falkordb_path)
+    if machine in ['x86_64', 'amd64']:
+        module_name = 'falkordb-x64.so'
+    elif machine in ['aarch64', 'arm64']:
+        module_name = 'falkordb-arm64v8.so'
+    else:
+        raise Exception(f'Unsupported architecture: {machine}')
     
-    # Clone FalkorDB repository with submodules
-    print(f'Cloning FalkorDB {FALKORDB_VERSION}...')
+    falkordb_url = f'https://github.com/FalkorDB/FalkorDB/releases/download/{FALKORDB_VERSION}/{module_name}'
+    module_path = os.path.join(BASEPATH, 'falkordb.so')
+    
+    print(f'Downloading FalkorDB module from {falkordb_url}')
     try:
-        result = call([
-            'git', 'clone', '--depth', '1', '--recursive',
-            '--branch', FALKORDB_VERSION,
-            'https://github.com/FalkorDB/FalkorDB.git',
-            falkordb_path
-        ])
-        if result != 0:
-            raise Exception(f'Git clone failed with exit code {result}')
-        print(f'FalkorDB cloned to {falkordb_path}')
+        urllib.request.urlretrieve(falkordb_url, module_path)
+        print(f'FalkorDB module downloaded to {module_path}')
     except Exception as e:
-        print(f'Failed to clone FalkorDB: {e}')
+        print(f'Failed to download FalkorDB module: {e}')
         raise
-    
-    # Build FalkorDB module
-    print('Building FalkorDB module...')
-    print('*' * 80)
-    
-    try:
-        # Run make in the FalkorDB directory with static linking
-        print('Running make with static linking...')
-        result = call(['make', 'STATIC=1'], cwd=falkordb_path)
-        if result != 0:
-            raise Exception(f'FalkorDB build failed with exit code {result}')
-        
-        # Copy the built module to the base path
-        built_module = os.path.join(falkordb_path, 'bin', 'linux-x64-release', 'src', 'falkordb.so')
-        dest_module = os.path.join(BASEPATH, 'falkordb.so')
-        
-        if os.path.exists(built_module):
-            shutil.copy2(built_module, dest_module)
-            print(f'FalkorDB module built and copied to {dest_module}')
-        else:
-            raise Exception(f'Built module not found at {built_module}')
-            
-    except Exception as e:
-        print(f'Failed to build FalkorDB module: {e}')
-        raise
-    finally:
-        print('*' * 80)
 
 
 class BuildRedis(build):
@@ -440,11 +413,11 @@ if __name__ == '__main__':
         logger.debug(f'Downloading redis version {REDIS_VERSION}')
         download_redis_submodule()
     
-    # Build FalkorDB module if not present
+    # Download FalkorDB module if not present
     falkordb_module = os.path.join(BASEPATH, 'falkordb.so')
     if not os.path.exists(falkordb_module):
-        logger.debug(f'Building FalkorDB version {FALKORDB_VERSION}')
-        download_and_build_falkordb()
+        logger.debug(f'Downloading FalkorDB version {FALKORDB_VERSION}')
+        download_falkordb_module()
 
     logger.debug('Building for platform: %s', distutils.util.get_platform())
 

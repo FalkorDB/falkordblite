@@ -34,16 +34,16 @@ jobs:
         path: redis.submodule
         key: redis-${{ env.REDIS_VERSION }}
     
-    - name: Cache FalkorDB source
+    - name: Cache FalkorDB module
       uses: actions/cache@v4
       with:
-        path: FalkorDB
-        key: falkordb-source-${{ env.FALKORDB_VERSION }}
+        path: falkordb.so
+        key: falkordb-${{ env.FALKORDB_VERSION }}-${{ runner.arch }}
     
     - name: Install build dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential gcc g++ make cmake python3-dev git peg libzstd-dev libzstd1
+        sudo apt-get install -y build-essential gcc make python3-dev
     
     - name: Install Python dependencies
       run: |
