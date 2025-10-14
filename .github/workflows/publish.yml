@@ -45,7 +45,7 @@ jobs:
     - name: Install build dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential gcc g++ make cmake python3-dev git
+        sudo apt-get install -y build-essential gcc g++ make cmake python3-dev git peg
     
     - name: Install Python dependencies
       run: |
