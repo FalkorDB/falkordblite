@@ -30,17 +30,11 @@ jobs:
       with:
         python-version: '3.12'
     
-    - name: Cache Redis submodule
-      uses: actions/cache@v4
-      with:
-        path: redis.submodule
-        key: redis-${{ env.REDIS_VERSION }}
-    
-    - name: Cache FalkorDB module
-      uses: actions/cache@v4
-      with:
-        path: falkordb.so
-        key: falkordb-${{ env.FALKORDB_VERSION }}-${{ runner.arch }}
+    - name: Clean build artifacts
+      run: |
+        rm -rf build/ dist/ *.egg-info redislite/bin/ falkordb.so redis.submodule/
+        find . -name "*.so" -type f -delete
+        find . -name "*.o" -type f -delete
     
     - name: Install cibuildwheel
       run: python -m pip install cibuildwheel==2.16.2
@@ -52,9 +46,11 @@ jobs:
         CIBW_SKIP: "*-musllinux*"
         CIBW_ARCHS: "x86_64"
         CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
+        CIBW_ENVIRONMENT: "REDIS_VERSION=8.2.2 FALKORDB_VERSION=v4.14.2"
         CIBW_BEFORE_BUILD: |
-          yum install -y gcc make
-          pip install -r requirements.txt
+          yum install -y gcc gcc-c++ make wget tar cmake3 git
+          ln -sf /usr/bin/cmake3 /usr/bin/cmake
+          pip install -r {project}/requirements.txt
     
     - uses: actions/upload-artifact@v4
       with:

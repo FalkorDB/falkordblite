@@ -59,29 +59,57 @@ def download_redis_submodule():
         # os.system('(cd redis.submodule;./deps/update-jemalloc.sh 4.0.4)')
 
 
-def download_falkordb_module():
-    """Download FalkorDB module binary from GitHub releases"""
-    # Determine the architecture and select appropriate module
-    import platform
-    machine = platform.machine().lower()
+def download_and_build_falkordb():
+    """Download and build FalkorDB module from source"""
+    falkordb_path = os.path.join(BASEPATH, 'FalkorDB')
     
-    if machine in ['x86_64', 'amd64']:
-        module_name = 'falkordb-x64.so'
-    elif machine in ['aarch64', 'arm64']:
-        module_name = 'falkordb-arm64v8.so'
-    else:
-        raise Exception(f'Unsupported architecture: {machine}')
+    # Clone or download FalkorDB source
+    if pathlib.Path(falkordb_path).exists():
+        shutil.rmtree(falkordb_path)
     
-    falkordb_url = f'https://github.com/FalkorDB/FalkorDB/releases/download/{FALKORDB_VERSION}/{module_name}'
-    module_path = os.path.join(BASEPATH, 'falkordb.so')
+    falkordb_url = f'https://github.com/FalkorDB/FalkorDB/archive/refs/tags/{FALKORDB_VERSION}.tar.gz'
     
-    print(f'Downloading FalkorDB module from {falkordb_url}')
+    with tempfile.TemporaryDirectory() as tempdir:
+        print(f'Downloading FalkorDB {FALKORDB_VERSION} from {falkordb_url}')
+        try:
+            ftpstream = urllib.request.urlopen(falkordb_url)
+            tf = tarfile.open(fileobj=ftpstream, mode="r|gz")
+            directory = tf.next().name
+            
+            print(f'Extracting FalkorDB archive {directory}')
+            tf.extractall(tempdir)
+            
+            print(f'Moving {os.path.join(tempdir, directory)} -> FalkorDB')
+            shutil.move(os.path.join(tempdir, directory), falkordb_path)
+        except Exception as e:
+            print(f'Failed to download FalkorDB: {e}')
+            raise
+    
+    # Build FalkorDB module
+    print('Building FalkorDB module...')
+    print('*' * 80)
+    
     try:
-        urllib.request.urlretrieve(falkordb_url, module_path)
-        print(f'FalkorDB module downloaded to {module_path}')
+        # Run make in the FalkorDB directory
+        result = call(['make'], cwd=falkordb_path)
+        if result != 0:
+            raise Exception(f'FalkorDB build failed with exit code {result}')
+        
+        # Copy the built module to the base path
+        built_module = os.path.join(falkordb_path, 'bin', 'linux-x64-release', 'src', 'falkordb.so')
+        dest_module = os.path.join(BASEPATH, 'falkordb.so')
+        
+        if os.path.exists(built_module):
+            shutil.copy2(built_module, dest_module)
+            print(f'FalkorDB module built and copied to {dest_module}')
+        else:
+            raise Exception(f'Built module not found at {built_module}')
+            
     except Exception as e:
-        print(f'Failed to download FalkorDB module: {e}')
+        print(f'Failed to build FalkorDB module: {e}')
         raise
+    finally:
+        print('*' * 80)
 
 
 class BuildRedis(build):
@@ -413,11 +441,11 @@ if __name__ == '__main__':
         logger.debug(f'Downloading redis version {REDIS_VERSION}')
         download_redis_submodule()
     
-    # Download FalkorDB module if not present
+    # Build FalkorDB module if not present
     falkordb_module = os.path.join(BASEPATH, 'falkordb.so')
     if not os.path.exists(falkordb_module):
-        logger.debug(f'Downloading FalkorDB version {FALKORDB_VERSION}')
-        download_falkordb_module()
+        logger.debug(f'Building FalkorDB version {FALKORDB_VERSION}')
+        download_and_build_falkordb()
 
     logger.debug('Building for platform: %s', distutils.util.get_platform())
 
