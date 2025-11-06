@@ -73,6 +73,10 @@ def download_falkordb_module():
         elif machine in ['x86_64', 'amd64']:
             # Note: FalkorDB only provides macOS ARM64 binaries currently
             # x86_64 Macs can run ARM64 binaries via Rosetta 2
+            print('*' * 80)
+            print('WARNING: Using ARM64 binaries on x86_64 Mac via Rosetta 2')
+            print('This may result in reduced performance compared to native binaries')
+            print('*' * 80)
             module_name = 'falkordb-macos-arm64v8.so'
         else:
             raise Exception(f'Unsupported macOS architecture: {machine}')

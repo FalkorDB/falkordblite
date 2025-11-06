@@ -85,7 +85,8 @@ jobs:
     - name: Repair wheel with delocate (macOS)
       if: runner.os == 'macOS'
       run: |
-        # delocate-wheel modifies wheels in place, so we just run it on the wheel
+        # delocate-wheel modifies wheels in place to bundle dependencies
+        # This is similar to auditwheel on Linux but for macOS
         delocate-wheel -v dist/*.whl
     
     - uses: actions/upload-artifact@v4
