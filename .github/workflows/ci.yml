@@ -86,6 +86,8 @@ jobs:
   test-macos:
     name: Test on macOS Python ${{ matrix.python-version }}
     runs-on: macos-latest
+    permissions:
+      contents: read
     strategy:
       matrix:
         python-version: ['3.12', '3.13']
