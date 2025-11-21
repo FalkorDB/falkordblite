@@ -107,6 +107,26 @@ if FalkorDBBase is not None:
             # Store reference to the client for cleanup
             self._redis_client = redis_client
         
+        def select_graph(self, graph_id: str) -> Graph:
+            """
+            Selects a graph by creating a new Graph instance.
+            
+            This override ensures that our custom Graph class (which inherits from
+            falkordb.Graph) is used instead of the base falkordb.Graph class.
+            
+            Args:
+                graph_id (str): The identifier of the graph.
+            
+            Returns:
+                Graph: A new Graph instance associated with the selected graph.
+            """
+            if not isinstance(graph_id, str) or graph_id == "":
+                raise TypeError(
+                    f"Expected a string parameter, but received {type(graph_id)}."
+                )
+            
+            return Graph(self, graph_id)
+        
         def close(self):
             """Close the connection and cleanup."""
             if hasattr(self._redis_client, '_cleanup'):
