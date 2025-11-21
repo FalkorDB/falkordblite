@@ -234,7 +234,7 @@ redis_collections module.
 
 ## Running and using Multiple servers
 
-Redislite will start a new server if the redis rdb fileame isn't specified or is new.  In this example we start 10 seperate redis servers and set the value of the key 'servernumber' to a different value in each server.  
+Redislite will start a new server if the redis rdb filename isn't specified or is new.  In this example we start 10 separate redis servers and set the value of the key 'servernumber' to a different value in each server.  
 
 Then we access the value of 'servernumber' and print it.
 
