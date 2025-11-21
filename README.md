@@ -288,7 +288,14 @@ True
 
 ### Graph Database with Cypher Queries
 
-FalkorDBLite provides full support for graph database operations using Cypher queries:
+FalkorDBLite provides full support for graph database operations using Cypher queries.
+
+**API Compatibility**: The `Graph` class in FalkorDBLite inherits directly from the official [falkordb-py](https://github.com/FalkorDB/falkordb-py) `Graph` class. This means:
+- All methods from falkordb-py are available (indices, constraints, procedures, etc.)
+- Code written for falkordb-py works with FalkorDBLite
+- You get automatic updates when falkordb-py adds new features
+
+Example usage:
 
 ```python
 >>> from redislite.falkordb_client import FalkorDB
@@ -313,6 +320,36 @@ FalkorDBLite provides full support for graph database operations using Cypher qu
 ... ''')
 >>> for row in result.result_set:
 ...     print(f"Friend: {row[0]}, Age: {row[1]}")
+```
+
+### Advanced Graph Features
+
+FalkorDBLite supports all advanced features from falkordb-py, including indices, constraints, and query analysis:
+
+```python
+>>> from redislite.falkordb_client import FalkorDB
+>>> 
+>>> db = FalkorDB('/tmp/advanced.db')
+>>> g = db.select_graph('social')
+>>> 
+>>> # Create indices for better query performance
+>>> g.create_node_range_index('Person', 'name')
+>>> g.create_node_range_index('Person', 'age')
+>>> 
+>>> # Create constraints to ensure data integrity
+>>> g.create_node_unique_constraint('Person', 'email')
+>>> g.create_node_mandatory_constraint('Person', 'name')
+>>> 
+>>> # List all indices and constraints
+>>> indices = g.list_indices()
+>>> constraints = g.list_constraints()
+>>> 
+>>> # Profile and explain queries for optimization
+>>> plan = g.explain('MATCH (p:Person) WHERE p.age > 25 RETURN p')
+>>> profile = g.profile('MATCH (p:Person)-[:KNOWS]->(f) RETURN p.name, f.name')
+>>> 
+>>> # Call stored procedures
+>>> result = g.call_procedure('db.labels')
 ```
 
 ### Multiple Graphs
