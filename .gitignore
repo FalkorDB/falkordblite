@@ -102,3 +102,6 @@ redis.submodule/bin/
 
 # FalkorDB module - downloaded during build
 /falkordb.so
+
+# Spellcheck compiled dictionary
+wordlist.dic
