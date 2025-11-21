@@ -18,7 +18,7 @@ jobs:
     
     env:
       REDIS_VERSION: '8.2.2'
-      FALKORDB_VERSION: 'v4.14.2'
+      FALKORDB_VERSION: 'v4.14.7'
     
     steps:
     - uses: actions/checkout@v4
@@ -32,13 +32,13 @@ jobs:
       uses: actions/cache@v4
       with:
         path: redis.submodule
-        key: redis-${{ env.REDIS_VERSION }}
+        key: redis-${{ env.REDIS_VERSION }}-linux
     
     - name: Cache FalkorDB module
       uses: actions/cache@v4
       with:
         path: falkordb.so
-        key: falkordb-${{ env.FALKORDB_VERSION }}-${{ runner.arch }}
+        key: falkordb-${{ env.FALKORDB_VERSION }}-${{ runner.os }}-${{ runner.arch }}
     
     - name: Install build dependencies
       run: |
@@ -83,6 +83,67 @@ jobs:
         name: codecov-umbrella
         fail_ci_if_error: false
 
+  test-macos:
+    name: Test on macOS Python ${{ matrix.python-version }}
+    runs-on: macos-latest
+    permissions:
+      contents: read
+    strategy:
+      matrix:
+        python-version: ['3.12', '3.13']
+      fail-fast: false
+    
+    env:
+      REDIS_VERSION: '8.2.2'
+      FALKORDB_VERSION: 'v4.14.7'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Cache Redis submodule
+      uses: actions/cache@v4
+      with:
+        path: redis.submodule
+        key: redis-${{ env.REDIS_VERSION }}-macos
+    
+    - name: Cache FalkorDB module
+      uses: actions/cache@v4
+      with:
+        path: falkordb.so
+        key: falkordb-${{ env.FALKORDB_VERSION }}-${{ runner.os }}-${{ runner.arch }}
+    
+    - name: Install build dependencies
+      run: |
+        brew install gcc make libomp
+    
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install setuptools wheel
+        pip install -r requirements.txt
+        pip install pytest pytest-cov
+    
+    - name: Build package
+      run: |
+        python setup.py build
+    
+    - name: Install package
+      run: |
+        pip install -e .
+    
+    - name: Run tests
+      run: |
+        pytest tests/ --cov=redislite --cov-report=xml --cov-report=term-missing
+    
+    - name: Run verification script
+      run: |
+        python verify_install.py
+
   lint:
     name: Code Quality Checks
     runs-on: ubuntu-latest
@@ -117,7 +178,7 @@ jobs:
     
     env:
       REDIS_VERSION: '6.2.14'
-      FALKORDB_VERSION: 'v4.14.2'
+      FALKORDB_VERSION: 'v4.14.7'
     
     steps:
     - uses: actions/checkout@v4
@@ -131,13 +192,13 @@ jobs:
       uses: actions/cache@v4
       with:
         path: redis.submodule
-        key: redis-${{ env.REDIS_VERSION }}
+        key: redis-${{ env.REDIS_VERSION }}-linux
     
     - name: Cache FalkorDB module
       uses: actions/cache@v4
       with:
         path: falkordb.so
-        key: falkordb-${{ env.FALKORDB_VERSION }}-${{ runner.arch }}
+        key: falkordb-${{ env.FALKORDB_VERSION }}-${{ runner.os }}-${{ runner.arch }}
     
     - name: Install build dependencies
       run: |

@@ -48,15 +48,24 @@ yum install python3-devel gcc make
 
 ### Installing requirements on Mac OSX
 
-Redislite for OSX comes as a wheel package by default that can be installed
+FalkorDBLite for macOS comes as a wheel package by default that can be installed
 using current versions of pip.
 
-To install Redislite on MacOSX using the sdist package instead you will need
-the XCode command line utilities installed.  If you do not have xcode
-installed on recent OSX releases they can be installed by
-running:
+**Important:** The FalkorDB module requires the OpenMP runtime library (`libomp`). 
+If you encounter an error like `Library not loaded: /opt/homebrew/opt/libomp/lib/libomp.dylib`, 
+install it using Homebrew:
 
-`xcode-select --install`
+```bash
+brew install libomp
+```
+
+To install FalkorDBLite on macOS using the sdist package instead, you will need
+the XCode command line utilities installed. If you do not have xcode
+installed on recent macOS releases, they can be installed by running:
+
+```bash
+xcode-select --install
+```
 
 ### Installing requirements on Microsoft Windows
 

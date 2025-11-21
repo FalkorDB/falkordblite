@@ -12,15 +12,18 @@ on:
 
 jobs:
   build-wheels:
-    name: Build wheels on Python ${{ matrix.python-version }}
-    runs-on: ubuntu-latest
+    name: Build wheels on ${{ matrix.os }} Python ${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
     strategy:
       matrix:
+        os: [ubuntu-latest, macos-latest]  # macos-latest is ARM64, x86_64 Macs can use Rosetta 2
         python-version: ['3.12', '3.13']
     
     env:
       REDIS_VERSION: '8.2.2'
-      FALKORDB_VERSION: 'v4.14.2'
+      FALKORDB_VERSION: 'v4.14.7'
     
     steps:
     - uses: actions/checkout@v4
@@ -34,24 +37,38 @@ jobs:
       uses: actions/cache@v4
       with:
         path: redis.submodule
-        key: redis-${{ env.REDIS_VERSION }}
+        key: redis-${{ env.REDIS_VERSION }}-${{ runner.os }}
     
     - name: Cache FalkorDB module
       uses: actions/cache@v4
       with:
         path: falkordb.so
-        key: falkordb-${{ env.FALKORDB_VERSION }}-${{ runner.arch }}
+        key: falkordb-${{ env.FALKORDB_VERSION }}-${{ runner.os }}-${{ runner.arch }}
     
-    - name: Install build dependencies
+    - name: Install build dependencies (Linux)
+      if: runner.os == 'Linux'
       run: |
         sudo apt-get update
         sudo apt-get install -y build-essential gcc make python3-dev
     
+    - name: Install build dependencies (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        brew install gcc make libomp
+    
     - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install setuptools wheel build auditwheel
+        pip install setuptools wheel build
         pip install -r requirements.txt
+    
+    - name: Install auditwheel (Linux)
+      if: runner.os == 'Linux'
+      run: pip install auditwheel
+    
+    - name: Install delocate (macOS)
+      if: runner.os == 'macOS'
+      run: pip install delocate
     
     - name: Build package
       run: |
@@ -61,14 +78,24 @@ jobs:
       run: |
         python setup.py bdist_wheel
     
-    - name: Repair wheel with auditwheel
+    - name: Repair wheel with auditwheel (Linux)
+      if: runner.os == 'Linux'
       run: |
         auditwheel repair dist/*.whl -w dist/
         rm dist/*-linux_*.whl  # Remove the original unrepaired wheel
     
+    - name: Repair wheel with delocate (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        # delocate-wheel modifies wheels in place to bundle dependencies.
+        # This is similar to auditwheel on Linux but for macOS.
+        # Unlike auditwheel, we do not remove the original wheel here because delocate modifies the wheel in place,
+        # so there is no unrepaired wheel to remove.
+        delocate-wheel -v dist/*.whl
+    
     - uses: actions/upload-artifact@v4
       with:
-        name: wheel-${{ matrix.python-version }}
+        name: wheel-${{ matrix.os }}-${{ matrix.python-version }}
         path: dist/*.whl
 
   build-sdist:
