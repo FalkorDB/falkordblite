@@ -32,7 +32,7 @@ REDIS_PATH = os.path.join(BASEPATH, 'redis.submodule')
 REDIS_SERVER_METADATA = {}
 REDIS_VERSION = os.environ.get('REDIS_VERSION', '8.2.2')
 REDIS_URL = f'http://download.redis.io/releases/redis-{REDIS_VERSION}.tar.gz'
-FALKORDB_VERSION = os.environ.get('FALKORDB_VERSION', 'v4.14.2')
+FALKORDB_VERSION = os.environ.get('FALKORDB_VERSION', 'v4.14.7')
 install_scripts = ''
 try:
     VERSION = check_output(['meta', 'get', 'package.version']).decode(errors='ignore')
@@ -61,16 +61,34 @@ def download_redis_submodule():
 
 def download_falkordb_module():
     """Download FalkorDB module binary from GitHub releases"""
-    # Determine the architecture and select appropriate module
+    # Determine the platform and architecture and select appropriate module
     import platform
     machine = platform.machine().lower()
+    system = platform.system().lower()
     
-    if machine in ['x86_64', 'amd64']:
-        module_name = 'falkordb-x64.so'
-    elif machine in ['aarch64', 'arm64']:
-        module_name = 'falkordb-arm64v8.so'
+    # Determine module name based on platform and architecture
+    if system == 'darwin':  # macOS
+        if machine in ['arm64', 'aarch64']:
+            module_name = 'falkordb-macos-arm64v8.so'
+        elif machine in ['x86_64', 'amd64']:
+            # Note: FalkorDB only provides macOS ARM64 binaries currently
+            # x86_64 Macs can run ARM64 binaries via Rosetta 2
+            print('*' * 80)
+            print('WARNING: Using ARM64 binaries on x86_64 Mac via Rosetta 2')
+            print('This may result in reduced performance compared to native binaries')
+            print('*' * 80)
+            module_name = 'falkordb-macos-arm64v8.so'
+        else:
+            raise Exception(f'Unsupported macOS architecture: {machine}')
+    elif system == 'linux':
+        if machine in ['x86_64', 'amd64']:
+            module_name = 'falkordb-x64.so'
+        elif machine in ['aarch64', 'arm64']:
+            module_name = 'falkordb-arm64v8.so'
+        else:
+            raise Exception(f'Unsupported Linux architecture: {machine}')
     else:
-        raise Exception(f'Unsupported architecture: {machine}')
+        raise Exception(f'Unsupported platform: {system}')
     
     falkordb_url = f'https://github.com/FalkorDB/FalkorDB/releases/download/{FALKORDB_VERSION}/{module_name}'
     module_path = os.path.join(BASEPATH, 'falkordb.so')
