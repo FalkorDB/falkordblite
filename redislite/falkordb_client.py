@@ -15,8 +15,12 @@ from .client import Redis, StrictRedis
 try:
     from falkordb import Graph as FalkorDBGraph
     from falkordb import FalkorDB as FalkorDBBase
-except ImportError:
+except ImportError as e:
     # Fallback if falkordb is not installed
+    import warnings
+    warnings.warn(f"falkordb-py not available ({e}), using fallback implementation. "
+                 f"Install falkordb>=1.0.0 for full API compatibility.", 
+                 ImportWarning, stacklevel=2)
     FalkorDBGraph = None
     FalkorDBBase = None
 
