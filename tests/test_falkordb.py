@@ -69,7 +69,9 @@ class TestFalkorDBClient(unittest.TestCase):
         try:
             import falkordb
             # Verify that our FalkorDB class inherits from falkordb.FalkorDB
-            self.assertTrue(issubclass(FalkorDB, falkordb.FalkorDB))
+            self.assertTrue(issubclass(FalkorDB, falkordb.FalkorDB),
+                          f"FalkorDB should inherit from falkordb.FalkorDB. "
+                          f"FalkorDB bases: {FalkorDB.__bases__}")
             
             # Verify that all key methods from falkordb.FalkorDB are available
             expected_methods = [
@@ -79,8 +81,8 @@ class TestFalkorDBClient(unittest.TestCase):
             for method_name in expected_methods:
                 self.assertTrue(hasattr(FalkorDB, method_name), 
                               f"FalkorDB class should have method: {method_name}")
-        except ImportError:
-            self.skipTest("falkordb package not installed")
+        except ImportError as e:
+            self.skipTest(f"falkordb package not installed: {e}")
 
     def test_falkordb_creation(self):
         """Test that we can create a FalkorDB instance"""
@@ -90,7 +92,8 @@ class TestFalkorDBClient(unittest.TestCase):
         try:
             db = FalkorDB(dbfilename=db_file)
             self.assertIsNotNone(db)
-            self.assertIsNotNone(db.client)
+            # FalkorDB now uses 'connection' attribute (from falkordb.FalkorDB base class)
+            self.assertIsNotNone(db.connection)
             db.close()
         finally:
             # Cleanup
