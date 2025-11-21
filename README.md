@@ -17,79 +17,12 @@ It provides enhanced versions of the Redis-Py Python bindings with FalkorDB grap
 * **Compatible** - Provides both Redis key-value operations and FalkorDB graph operations in a unified interface.
 * **Secure** - Uses a secure default Redis configuration that is only accessible by the creating user on the computer system it is run on.
 
-## Requirements
-
-The falkordblite module requires Python 3.12 or higher.
-
-### Python Dependencies
-
-The package requires the following Python packages:
-- `redis>=4.5` - Redis Python client
-- `psutil` - Process and system utilities
-- `setuptools>38.0` - Build system
-
-These are automatically installed when using `pip install` or by installing from `requirements.txt`.
-
-### System Requirements on Linux
-
-Make sure Python development headers and build tools are available when building from source.
-
-On Ubuntu/Debian systems, install them with:
-
-```bash
-apt-get install python3-dev build-essential
-```
-
-On Redhat/Fedora systems, install them with:
-
-```bash
-yum install python3-devel gcc make
-```
-
-### Installing requirements on Mac OSX
-
-FalkorDBLite for macOS comes as a wheel package by default that can be installed
-using current versions of pip.
-
-**Important:** The FalkorDB module requires the OpenMP runtime library (`libomp`). 
-If you encounter an error like `Library not loaded: /opt/homebrew/opt/libomp/lib/libomp.dylib`, 
-install it using Homebrew:
-
-```bash
-brew install libomp
-```
-
-To install FalkorDBLite on macOS using the sdist package instead, you will need
-the XCode command line utilities installed. If you do not have xcode
-installed on recent macOS releases, they can be installed by running:
-
-```bash
-xcode-select --install
-```
-
-### Installing requirements on Microsoft Windows
-
-Redislite can be installed on newer releases of Windows 10 under the Bash on Ubuntu shell.
-
-Install it using the instructions at https://msdn.microsoft.com/commandline/wsl/install_guide 
-
-Then start the bash shell and install the python-dev package as follows:
-
-`apt-get install python-dev`    
-    
 ## Installation
 
 To install falkordblite, simply:
 
 ```console
 $ pip install falkordblite
-```
-
-or from source:
-
-```console
-$ pip install -r requirements.txt
-$ python setup.py install
 ```
 
 ### Verifying Installation
@@ -105,34 +38,26 @@ This will test:
 - FalkorDB instance creation
 - Basic graph operations
 
-### Development Installation
+## Requirements
 
-For development or working from source in a virtual environment:
+The falkordblite module requires Python 3.12 or higher.
 
-```console
-# Create and activate a virtual environment
-$ python3 -m venv venv
-$ source venv/bin/activate  # On Windows: venv\Scripts\activate
+### Runtime Requirements
 
-# Install build dependencies
-$ pip install setuptools wheel
+The package requires the following Python packages (automatically installed with pip):
+- `redis>=4.5` - Redis Python client
+- `psutil` - Process and system utilities
+- `setuptools>38.0` - Build system
 
-# Install runtime dependencies
-$ pip install -r requirements.txt
+### macOS Runtime Requirements
 
-# Build the project (this compiles Redis and copies binaries automatically)
-$ python setup.py build
+**Important:** The FalkorDB module requires the OpenMP runtime library (`libomp`). 
+If you encounter an error like `Library not loaded: /opt/homebrew/opt/libomp/lib/libomp.dylib`, 
+install it using Homebrew:
 
-# Install in editable mode for development
-$ pip install -e .
+```bash
+brew install libomp
 ```
-
-The `python setup.py build` command will:
-- Compile Redis from source
-- Download the FalkorDB module
-- Automatically copy binaries to `redislite/bin/` with proper permissions
-
-**Note:** If you encounter issues, see [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for details.
 
 
 ## Getting Started
@@ -356,3 +281,83 @@ FalkorDBLite combines the power of Redis and FalkorDB graph database in an embed
 - FalkorDB Python Client: https://github.com/FalkorDB/falkordb-py
 
 FalkorDBLite is Free software under the New BSD license, see LICENSE.txt for details.
+
+## Building from Source
+
+If you want to build FalkorDBLite from source instead of using the PyPI package, follow these instructions.
+
+### System Requirements for Building
+
+#### Linux
+
+Make sure Python development headers and build tools are available when building from source.
+
+On Ubuntu/Debian systems, install them with:
+
+```bash
+apt-get install python3-dev build-essential
+```
+
+On Redhat/Fedora systems, install them with:
+
+```bash
+yum install python3-devel gcc make
+```
+
+#### macOS
+
+To build FalkorDBLite on macOS from the sdist package, you will need
+the XCode command line utilities installed. If you do not have xcode
+installed on recent macOS releases, they can be installed by running:
+
+```bash
+xcode-select --install
+```
+
+#### Windows
+
+Redislite can be installed on newer releases of Windows 10 under the Bash on Ubuntu shell.
+
+Install it using the instructions at https://msdn.microsoft.com/commandline/wsl/install_guide 
+
+Then start the bash shell and install the python-dev package as follows:
+
+`apt-get install python-dev`
+
+### Building and Installing
+
+To build from source:
+
+```console
+$ pip install -r requirements.txt
+$ python setup.py install
+```
+
+### Development Installation
+
+For development or working from source in a virtual environment:
+
+```console
+# Create and activate a virtual environment
+$ python3 -m venv venv
+$ source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install build dependencies
+$ pip install setuptools wheel
+
+# Install runtime dependencies
+$ pip install -r requirements.txt
+
+# Build the project (this compiles Redis and copies binaries automatically)
+$ python setup.py build
+
+# Install in editable mode for development
+$ pip install -e .
+```
+
+The `python setup.py build` command will:
+- Compile Redis from source
+- Download the FalkorDB module
+- Automatically copy binaries to `redislite/bin/` with proper permissions
+
+**Note:** If you encounter issues, see [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for details.
