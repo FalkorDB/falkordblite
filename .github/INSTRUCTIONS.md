@@ -20,13 +20,21 @@ Triggered when a new release is published. This workflow:
 
 - **Builds**: Creates source distribution and wheel packages
 - **Validates**: Checks package integrity with `twine check`
-- **Publishes**: Uploads the packages to PyPI (requires `PYPI_API_TOKEN` secret)
+- **Publishes**: Uploads the packages to PyPI using Trusted Publishing (OIDC)
 
-## Secrets Required
+## PyPI Configuration Required
 
-To use the publish workflow, you need to configure the following secret in your repository settings:
+This workflow uses PyPI's Trusted Publishing feature, which eliminates the need for API tokens. To set this up:
 
-- `PYPI_API_TOKEN`: Your PyPI API token for authentication
+1. Log in to PyPI as the package owner
+2. Navigate to your package's settings
+3. Add a new "Trusted Publisher" with the following details:
+   - **Owner**: FalkorDB
+   - **Repository name**: falkordblite
+   - **Workflow name**: publish.yml
+   - **Environment name**: (leave empty)
+
+For more information, see: https://docs.pypi.org/trusted-publishers/
 
 ## Manual Triggering
 
