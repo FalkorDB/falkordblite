@@ -5,182 +5,53 @@
 FalkorDB client wrapper for redislite
 
 This module provides a FalkorDB-compatible API wrapper around the redislite client
-to enable graph database operations using Cypher queries.
+to enable graph database operations using Cypher queries. Uses the official falkordb-py
+library for API compatibility.
 """
-import json
-from typing import Dict, Optional, List, Any
+from typing import Optional, List
 from .client import Redis, StrictRedis
 
+# Import the official falkordb Graph class
+try:
+    from falkordb import Graph as FalkorDBGraph
+except ImportError:
+    # Fallback if falkordb is not installed
+    FalkorDBGraph = None
 
-class Graph:
-    """
-    Graph, collection of nodes and edges.
-    Provides methods to execute Cypher queries against a FalkorDB graph.
-    """
 
-    def __init__(self, client, name: str):
+# Use the official falkordb.Graph class directly if available
+if FalkorDBGraph is not None:
+    class Graph(FalkorDBGraph):
         """
-        Create a new graph.
-
-        Args:
-            client: The Redis client object.
-            name (str): Graph ID/name
-        """
-        self._name = name
-        self.client = client
-
-    @property
-    def name(self) -> str:
-        """
-        Get the graph name.
-
-        Returns:
-            str: The graph name.
-        """
-        return self._name
-
-    def query(self, q: str, params: Optional[Dict[str, Any]] = None,
-              timeout: Optional[int] = None):
-        """
-        Executes a Cypher query against the graph.
-
-        Args:
-            q (str): The Cypher query.
-            params (dict): Query parameters (optional).
-            timeout (int): Maximum query runtime in milliseconds (optional).
-
-        Returns:
-            QueryResult: Query result set.
-        """
-        query = q
-
-        # Build query command
-        command = ["GRAPH.QUERY", self.name, query]
-
-        # Add parameters if provided
-        if params:
-            command.extend(["PARAMS", str(len(params) * 2)])
-            for key, value in params.items():
-                command.extend([key, json.dumps(value)])
-
-        # Include timeout if specified
-        if isinstance(timeout, int):
-            command.extend(["TIMEOUT", timeout])
-        elif timeout is not None:
-            raise Exception("Timeout argument must be a positive integer")
-
-        # Add compact flag at the end
-        command.append("--compact")
+        Graph class that extends the official falkordb.Graph class.
+        This provides full compatibility with the falkordb-py API while
+        working with the embedded Redis server.
         
-        # Execute query
-        response = self.client.execute_command(*command)
-        return QueryResult(response)
-
-    def ro_query(self, q: str, params: Optional[Dict[str, Any]] = None,
-                 timeout: Optional[int] = None):
+        All methods from falkordb.Graph are available, including:
+        - query, ro_query: Execute Cypher queries
+        - delete, copy: Graph management
+        - slowlog, slowlog_reset: Performance monitoring
+        - profile, explain: Query analysis
+        - create_*_index, drop_*_index: Index operations
+        - create_*_constraint, drop_*_constraint: Constraint operations
+        - list_indices, list_constraints: Metadata queries
+        - call_procedure: Execute stored procedures
         """
-        Executes a read-only Cypher query against the graph.
-
-        Args:
-            q (str): The Cypher query.
-            params (dict): Query parameters (optional).
-            timeout (int): Maximum query runtime in milliseconds (optional).
-
-        Returns:
-            QueryResult: Query result set.
+        pass
+else:
+    # Fallback implementation if falkordb is not installed
+    class Graph:
         """
-        query = q
-
-        # Build query command
-        command = ["GRAPH.RO_QUERY", self.name, query]
-
-        # Add parameters if provided
-        if params:
-            command.extend(["PARAMS", str(len(params) * 2)])
-            for key, value in params.items():
-                command.extend([key, json.dumps(value)])
-
-        # Include timeout if specified
-        if isinstance(timeout, int):
-            command.extend(["TIMEOUT", timeout])
-        elif timeout is not None:
-            raise Exception("Timeout argument must be a positive integer")
-
-        # Add compact flag at the end
-        command.append("--compact")
+        Fallback Graph implementation when falkordb-py is not available.
+        """
+        def __init__(self, client, name: str):
+            self._name = name
+            self.client = client
+            self.execute_command = client.execute_command
         
-        # Execute query
-        response = self.client.execute_command(*command)
-        return QueryResult(response)
-
-    def delete(self) -> None:
-        """
-        Deletes the graph.
-
-        Returns:
-            None
-        """
-        return self.client.execute_command("GRAPH.DELETE", self._name)
-
-    def copy(self, clone: str):
-        """
-        Creates a copy of the graph.
-
-        Args:
-            clone (str): Name of cloned graph
-
-        Returns:
-            Graph: The cloned graph
-        """
-        self.client.execute_command("GRAPH.COPY", self.name, clone)
-        return Graph(self.client, clone)
-
-    def slowlog(self):
-        """
-        Get a list containing up to 10 of the slowest queries issued
-        against the graph.
-
-        Returns:
-            List: List of slow log entries.
-        """
-        return self.client.execute_command("GRAPH.SLOWLOG", self._name)
-
-
-class QueryResult:
-    """
-    Represents the result of a graph query.
-    """
-
-    def __init__(self, response):
-        """
-        Initialize query result.
-
-        Args:
-            response: Raw response from Redis/FalkorDB
-        """
-        self._raw_response = response
-        self._parse_response(response)
-
-    def _parse_response(self, response):
-        """
-        Parse the raw response from FalkorDB.
-
-        Args:
-            response: Raw response from Redis/FalkorDB
-        """
-        # FalkorDB returns results in a specific format
-        # [result_set, statistics]
-        if isinstance(response, list) and len(response) >= 2:
-            self.result_set = response[0] if response[0] else []
-            self._statistics = response[1] if len(response) > 1 else []
-        else:
-            self.result_set = []
-            self._statistics = []
-
-    @property
-    def statistics(self):
-        """Get query statistics."""
-        return self._statistics
+        @property
+        def name(self) -> str:
+            return self._name
 
 
 class FalkorDB:
