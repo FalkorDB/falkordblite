@@ -11,12 +11,14 @@ library for API compatibility.
 from typing import Optional, List
 from .client import Redis, StrictRedis
 
-# Import the official falkordb Graph class
+# Import the official falkordb classes
 try:
     from falkordb import Graph as FalkorDBGraph
+    from falkordb import FalkorDB as FalkorDBBase
 except ImportError:
     # Fallback if falkordb is not installed
     FalkorDBGraph = None
+    FalkorDBBase = None
 
 
 # Use the official falkordb.Graph class directly if available
@@ -54,72 +56,114 @@ else:
             return self._name
 
 
-class FalkorDB:
-    """
-    FalkorDB Class for interacting with a FalkorDB-enabled Redis server.
-
-    This is a wrapper around redislite's Redis client that provides
-    FalkorDB-specific functionality for graph database operations.
-
-    Usage example::
-        from redislite.falkordb_client import FalkorDB
-
-        # Create a FalkorDB instance (uses embedded Redis with FalkorDB)
-        db = FalkorDB('/tmp/falkordb.db')
-
-        # Select a graph
-        g = db.select_graph('social')
-
-        # Execute a query
-        result = g.query('CREATE (n:Person {name: "Alice"}) RETURN n')
-
-        # Get the result
-        for row in result.result_set:
-            print(row)
-    """
-
-    def __init__(self, dbfilename=None, serverconfig=None, **kwargs):
+# Create FalkorDB class that extends falkordb.FalkorDB if available
+if FalkorDBBase is not None:
+    class FalkorDB(FalkorDBBase):
         """
-        Create a new FalkorDB instance using redislite.
-
-        Args:
-            dbfilename (str): Path to the database file (optional)
-            serverconfig (dict): Additional Redis server configuration (optional)
-            **kwargs: Additional arguments passed to the Redis client
+        FalkorDB Class for interacting with a FalkorDB-enabled embedded Redis server.
+        
+        This class extends the official falkordb.FalkorDB class to work with
+        redislite's embedded Redis server while maintaining full API compatibility.
+        
+        All methods from falkordb.FalkorDB are available, including:
+        - select_graph: Select a graph by name
+        - list_graphs: List all graphs
+        - config_get, config_set: Server configuration
+        - from_url: Create from connection URL
+        
+        Usage example::
+            from redislite.falkordb_client import FalkorDB
+            
+            # Create a FalkorDB instance (uses embedded Redis with FalkorDB)
+            db = FalkorDB('/tmp/falkordb.db')
+            
+            # Select a graph
+            g = db.select_graph('social')
+            
+            # Execute a query
+            result = g.query('CREATE (n:Person {name: "Alice"}) RETURN n')
         """
-        # Create an embedded Redis instance with FalkorDB module loaded
-        self.client = Redis(
-            dbfilename=dbfilename,
-            serverconfig=serverconfig or {},
-            **kwargs
-        )
-
-    def select_graph(self, name: str) -> Graph:
+        
+        def __init__(self, dbfilename=None, serverconfig=None, **kwargs):
+            """
+            Create a new FalkorDB instance using redislite's embedded Redis.
+            
+            Args:
+                dbfilename (str): Path to the database file (optional)
+                serverconfig (dict): Additional Redis server configuration (optional)
+                **kwargs: Additional arguments passed to the Redis client
+            """
+            # Create an embedded Redis instance with FalkorDB module loaded
+            redis_client = Redis(
+                dbfilename=dbfilename,
+                serverconfig=serverconfig or {},
+                **kwargs
+            )
+            
+            # Set the connection attribute that FalkorDB base class expects
+            self.connection = redis_client
+            self.execute_command = redis_client.execute_command
+            
+            # Store reference to the client for cleanup
+            self._redis_client = redis_client
+        
+        def close(self):
+            """Close the connection and cleanup."""
+            if hasattr(self._redis_client, '_cleanup'):
+                self._redis_client._cleanup()
+else:
+    # Fallback implementation if falkordb is not installed
+    class FalkorDB:
         """
-        Select a graph by name.
-
-        Args:
-            name (str): The name of the graph
-
-        Returns:
-            Graph: A Graph instance
+        Fallback FalkorDB implementation when falkordb-py is not available.
+        
+        This is a wrapper around redislite's Redis client that provides
+        FalkorDB-specific functionality for graph database operations.
         """
-        return Graph(self.client, name)
-
-    def list_graphs(self) -> List[str]:
-        """
-        List all graphs in the database.
-
-        Returns:
-            List[str]: List of graph names
-        """
-        try:
-            result = self.client.execute_command("GRAPH.LIST")
-            return result if result else []
-        except Exception:
-            return []
-
-    def close(self):
-        """Close the connection and cleanup."""
-        if hasattr(self.client, '_cleanup'):
-            self.client._cleanup()
+        
+        def __init__(self, dbfilename=None, serverconfig=None, **kwargs):
+            """
+            Create a new FalkorDB instance using redislite.
+            
+            Args:
+                dbfilename (str): Path to the database file (optional)
+                serverconfig (dict): Additional Redis server configuration (optional)
+                **kwargs: Additional arguments passed to the Redis client
+            """
+            # Create an embedded Redis instance with FalkorDB module loaded
+            self.connection = Redis(
+                dbfilename=dbfilename,
+                serverconfig=serverconfig or {},
+                **kwargs
+            )
+            self.execute_command = self.connection.execute_command
+        
+        def select_graph(self, name: str) -> Graph:
+            """
+            Select a graph by name.
+            
+            Args:
+                name (str): The name of the graph
+            
+            Returns:
+                Graph: A Graph instance
+            """
+            return Graph(self.connection, name)
+        
+        def list_graphs(self) -> List[str]:
+            """
+            List all graphs in the database.
+            
+            Returns:
+                List[str]: List of graph names
+            """
+            try:
+                result = self.connection.execute_command("GRAPH.LIST")
+                return result if result else []
+            except Exception:
+                return []
+        
+        def close(self):
+            """Close the connection and cleanup."""
+            if hasattr(self.connection, '_cleanup'):
+                self.connection._cleanup()

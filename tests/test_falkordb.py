@@ -64,6 +64,24 @@ class TestFalkorDBClient(unittest.TestCase):
         except ImportError:
             self.skipTest("falkordb package not installed")
 
+    def test_falkordb_class_inheritance(self):
+        """Test that FalkorDB class inherits from falkordb.FalkorDB"""
+        try:
+            import falkordb
+            # Verify that our FalkorDB class inherits from falkordb.FalkorDB
+            self.assertTrue(issubclass(FalkorDB, falkordb.FalkorDB))
+            
+            # Verify that all key methods from falkordb.FalkorDB are available
+            expected_methods = [
+                'select_graph', 'list_graphs', 'config_get', 'config_set', 'from_url'
+            ]
+            
+            for method_name in expected_methods:
+                self.assertTrue(hasattr(FalkorDB, method_name), 
+                              f"FalkorDB class should have method: {method_name}")
+        except ImportError:
+            self.skipTest("falkordb package not installed")
+
     def test_falkordb_creation(self):
         """Test that we can create a FalkorDB instance"""
         temp_dir = tempfile.mkdtemp()

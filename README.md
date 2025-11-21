@@ -290,8 +290,9 @@ True
 
 FalkorDBLite provides full support for graph database operations using Cypher queries.
 
-**API Compatibility**: The `Graph` class in FalkorDBLite inherits directly from the official [falkordb-py](https://github.com/FalkorDB/falkordb-py) `Graph` class. This means:
-- All methods from falkordb-py are available (indices, constraints, procedures, etc.)
+**API Compatibility**: Both the `FalkorDB` and `Graph` classes in FalkorDBLite inherit directly from the official [falkordb-py](https://github.com/FalkorDB/falkordb-py) library. This means:
+- **FalkorDB class**: Inherits from `falkordb.FalkorDB` - provides `select_graph`, `list_graphs`, `config_get`, `config_set`, `from_url`
+- **Graph class**: Inherits from `falkordb.Graph` - provides all 32 methods (indices, constraints, procedures, profiling, etc.)
 - Code written for falkordb-py works with FalkorDBLite
 - You get automatic updates when falkordb-py adds new features
 
