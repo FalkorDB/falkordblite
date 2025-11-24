@@ -326,7 +326,21 @@ if bdist_wheel:
             
             # Set platform name based on current platform to avoid dual arch tags
             if self.plat_name is None:
-                self.plat_name = distutils.util.get_platform().replace('-', '_').replace('.', '_')
+                import platform
+                system = platform.system().lower()
+                machine = platform.machine().lower()
+                
+                if system == 'darwin':
+                    # For macOS, use a specific platform tag based on architecture
+                    if machine in ['arm64', 'aarch64']:
+                        # ARM64 Macs should use arm64 tag
+                        self.plat_name = 'macosx_11_0_arm64'
+                    else:
+                        # x86_64 Macs
+                        self.plat_name = 'macosx_10_13_x86_64'
+                else:
+                    # For Linux and other platforms, use the default
+                    self.plat_name = distutils.util.get_platform().replace('-', '_').replace('.', '_')
 else:
     BdistWheel = None
 

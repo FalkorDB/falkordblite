@@ -56,6 +56,14 @@ jobs:
       run: |
         brew install gcc make libomp
     
+    - name: Set architecture flags (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        # Set ARCHFLAGS to build only for the current architecture
+        ARCH=$(uname -m)
+        echo "ARCHFLAGS=-arch $ARCH" >> $GITHUB_ENV
+        echo "Building for architecture: $ARCH"
+    
     - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
@@ -91,7 +99,9 @@ jobs:
         # This is similar to auditwheel on Linux but for macOS.
         # Unlike auditwheel, we do not remove the original wheel here because delocate modifies the wheel in place,
         # so there is no unrepaired wheel to remove.
-        delocate-wheel -v dist/*.whl
+        # Use --require-archs to ensure we only keep the target architecture and avoid dual-arch wheels
+        ARCH=$(uname -m)
+        delocate-wheel -v --require-archs=$ARCH dist/*.whl
     
     - uses: actions/upload-artifact@v4
       with:
