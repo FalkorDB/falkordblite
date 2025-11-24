@@ -12,6 +12,10 @@ import subprocess
 from setuptools import setup
 from setuptools.command.install import install
 from setuptools.command.develop import develop
+try:
+    from wheel.bdist_wheel import bdist_wheel
+except ImportError:
+    bdist_wheel = None
 import shutil
 import sys
 import urllib.request
@@ -310,18 +314,38 @@ class InstallRedis(install):
             with open(md_file, 'w') as fh:
                 json.dump(md, fh, indent=4)
 
+
+class BdistWheel(bdist_wheel):
+    """Custom bdist_wheel command to ensure platform-specific wheel tags"""
+    
+    def finalize_options(self):
+        if bdist_wheel is None:
+            raise RuntimeError("wheel package is required for building wheels")
+        bdist_wheel.finalize_options(self)
+        # Ensure we don't create universal wheels
+        self.universal = False
+        
+        # Set platform name based on current platform to avoid dual arch tags
+        if self.plat_name is None:
+            self.plat_name = distutils.util.get_platform().replace('-', '_').replace('.', '_')
+
+
 # Create a dictionary of our arguments, this way this script can be imported
 #  without running setup() to allow external scripts to see the setup settings.
+cmdclass = {
+    'build': BuildRedis,
+    'install': InstallRedis,
+    'develop': DevelopRedis,
+}
+if bdist_wheel:
+    cmdclass['bdist_wheel'] = BdistWheel
+
 args = {
     'package_data': {
         'redislite': ['package_metadata.json', 'bin/redis-server', 'bin/falkordb.so'],
     },
     'include_package_data': True,
-    'cmdclass': {
-        'build': BuildRedis,
-        'install': InstallRedis,
-        'develop': DevelopRedis,
-    },
+    'cmdclass': cmdclass,
 
     # We put in a bogus extension module so wheel knows this package has
     # compiled components.
