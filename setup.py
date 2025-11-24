@@ -315,19 +315,20 @@ class InstallRedis(install):
                 json.dump(md, fh, indent=4)
 
 
-class BdistWheel(bdist_wheel):
-    """Custom bdist_wheel command to ensure platform-specific wheel tags"""
-    
-    def finalize_options(self):
-        if bdist_wheel is None:
-            raise RuntimeError("wheel package is required for building wheels")
-        bdist_wheel.finalize_options(self)
-        # Ensure we don't create universal wheels
-        self.universal = False
+if bdist_wheel:
+    class BdistWheel(bdist_wheel):
+        """Custom bdist_wheel command to ensure platform-specific wheel tags"""
         
-        # Set platform name based on current platform to avoid dual arch tags
-        if self.plat_name is None:
-            self.plat_name = distutils.util.get_platform().replace('-', '_').replace('.', '_')
+        def finalize_options(self):
+            super().finalize_options()
+            # Ensure we don't create universal wheels
+            self.universal = False
+            
+            # Set platform name based on current platform to avoid dual arch tags
+            if self.plat_name is None:
+                self.plat_name = distutils.util.get_platform().replace('-', '_').replace('.', '_')
+else:
+    BdistWheel = None
 
 
 # Create a dictionary of our arguments, this way this script can be imported
