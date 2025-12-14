@@ -45,7 +45,7 @@ falkordblite/
 ## Development Setup
 
 ### Prerequisites
-- Python 3.12 or higher (3.13, 3.14 supported)
+- Python 3.12, 3.13, or 3.14 (tested and supported versions in CI)
 - Build tools (gcc, make, python3-dev on Linux; Xcode CLI tools on macOS)
 - macOS: OpenMP runtime library (`brew install libomp`)
 
@@ -186,8 +186,9 @@ python -m build
 
 ### CI Workflow (`.github/workflows/ci.yml`)
 Runs on push and PR to master/main branches:
-- **Test**: Python 3.12, 3.13, 3.14 on Ubuntu and macOS
-- **Lint**: pylint and pycodestyle checks
+- **Test**: Python 3.12, 3.13, 3.14 on Ubuntu and macOS with full test suite
+- **Verification**: Runs verify_install.py to ensure installation works
+- **Lint**: Code quality checks with pylint and pycodestyle
 - **Build**: Source distribution and wheel packages
 - **Coverage**: Upload to Codecov
 
@@ -256,7 +257,7 @@ python -m redislite.debug
 - `redis>=4.5`: Redis Python client
 - `psutil`: Process and system utilities
 - `setuptools>38.0`: Build system
-- `falkordb`: FalkorDB Python client (dynamically loaded)
+- `falkordb>=1.2.0`: FalkorDB Python client (dynamically loaded)
 
 ### Development Dependencies
 - `pytest`: Testing framework
