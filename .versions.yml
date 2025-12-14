@@ -1,0 +1,6 @@
+# Centralized version configuration for FalkorDBLite
+# This file is the single source of truth for Redis and FalkorDB versions
+# All CI/CD workflows and build scripts read from this file
+
+redis_version: '8.2.2'
+falkordb_version: 'v4.14.7'

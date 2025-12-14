@@ -21,12 +21,11 @@ jobs:
         os: [ubuntu-latest, macos-latest]  # macos-latest is ARM64, x86_64 Macs can use Rosetta 2
         python-version: ['3.12', '3.13', '3.14']
     
-    env:
-      REDIS_VERSION: '8.2.2'
-      FALKORDB_VERSION: 'v4.14.7'
-    
     steps:
     - uses: actions/checkout@v4
+    
+    - name: Load versions from .versions.yml
+      uses: ./.github/actions/load-versions
     
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5

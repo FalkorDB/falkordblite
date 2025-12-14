@@ -1,0 +1,46 @@
+name: 'Load Versions'
+description: 'Load Redis and FalkorDB versions from .versions.yml'
+runs:
+  using: 'composite'
+  steps:
+    - name: Ensure PyYAML is installed
+      shell: bash
+      run: |
+        python3 -m pip install --quiet PyYAML || true
+    
+    - name: Load versions from .versions.yml
+      shell: bash
+      run: |
+        python3 << 'EOF'
+        import yaml
+        import os
+        import sys
+        
+        try:
+            with open('.versions.yml', 'r') as f:
+                data = yaml.safe_load(f)
+            
+            redis_version = data.get('redis_version')
+            falkordb_version = data.get('falkordb_version')
+            
+            if not redis_version:
+                print("Error: redis_version not found in .versions.yml")
+                sys.exit(1)
+            if not falkordb_version:
+                print("Error: falkordb_version not found in .versions.yml")
+                sys.exit(1)
+            
+            # Set environment variables for GitHub Actions
+            env_file = os.getenv('GITHUB_ENV')
+            with open(env_file, 'a') as f:
+                f.write(f'REDIS_VERSION={redis_version}\n')
+                f.write(f'FALKORDB_VERSION={falkordb_version}\n')
+            
+            print(f'Loaded versions - Redis: {redis_version}, FalkorDB: {falkordb_version}')
+        except FileNotFoundError:
+            print("Error: .versions.yml not found")
+            sys.exit(1)
+        except Exception as e:
+            print(f"Error loading versions: {e}")
+            sys.exit(1)
+        EOF
