@@ -101,9 +101,65 @@ def download_falkordb_module():
     try:
         urllib.request.urlretrieve(falkordb_url, module_path)
         print(f'FalkorDB module downloaded to {module_path}')
+        
+        # On macOS, check if the binary is a universal binary and thin it if needed
+        if system == 'darwin':
+            _thin_macos_binary(module_path, machine)
     except Exception as e:
         print(f'Failed to download FalkorDB module: {e}')
         raise
+
+
+def _thin_macos_binary(binary_path, target_arch):
+    """
+    Thin a macOS binary to a single architecture to avoid dual-arch wheels.
+    Uses the 'lipo' tool to extract only the target architecture.
+    """
+    if not os.path.exists(binary_path):
+        return
+    
+    try:
+        # Check if the binary contains multiple architectures
+        result = subprocess.run(
+            ['lipo', '-info', binary_path],
+            capture_output=True,
+            text=True,
+            check=False
+        )
+        
+        if result.returncode == 0:
+            info_output = result.stdout
+            print(f'Binary architecture info: {info_output}')
+            
+            # If it's a universal binary (contains multiple architectures)
+            if 'Non-fat file' not in info_output and 'Architectures in the fat file' in info_output:
+                print(f'Thinning universal binary to {target_arch}')
+                
+                # Create a temporary file for the thinned binary
+                temp_path = binary_path + '.thin'
+                
+                # Extract only the target architecture
+                thin_result = subprocess.run(
+                    ['lipo', binary_path, '-thin', target_arch, '-output', temp_path],
+                    capture_output=True,
+                    text=True,
+                    check=False
+                )
+                
+                if thin_result.returncode == 0:
+                    # Replace the original with the thinned version
+                    shutil.move(temp_path, binary_path)
+                    print(f'Successfully thinned binary to {target_arch}')
+                else:
+                    print(f'Warning: Could not thin binary: {thin_result.stderr}')
+                    if os.path.exists(temp_path):
+                        os.remove(temp_path)
+            else:
+                print(f'Binary is already single-architecture')
+    except FileNotFoundError:
+        print('Warning: lipo tool not found, skipping binary thinning')
+    except Exception as e:
+        print(f'Warning: Error thinning binary: {e}')
 
 
 class BuildRedis(build):
@@ -180,6 +236,17 @@ class BuildRedis(build):
         self.mkpath(self.build_scripts)
 
         if not self.dry_run:
+            # On macOS, thin binaries to single architecture before copying
+            import platform
+            system = platform.system().lower()
+            machine = platform.machine().lower()
+            
+            if system == 'darwin':
+                print('Thinning Redis binaries to single architecture on macOS')
+                for target in target_files:
+                    if os.path.exists(target):
+                        _thin_macos_binary(target, machine)
+            
             for target in target_files:
                 logger.debug('copy: %s -> %s', target, self.build_scripts)
                 self.copy_file(target, self.build_scripts)

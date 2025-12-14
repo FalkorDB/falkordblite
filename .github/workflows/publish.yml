@@ -95,19 +95,16 @@ jobs:
       if: runner.os == 'macOS'
       run: |
         # delocate-wheel modifies wheels in place to bundle dependencies.
-        # This is similar to auditwheel on Linux but for macOS.
-        # Strip libraries to single architecture before bundling to avoid dual-arch wheels
-        ARCH=$(uname -m)
+        # Binaries have been thinned to single architecture in setup.py before building the wheel.
         
         # First, list dependencies to see what's being bundled
         echo "Checking wheel dependencies before delocate:"
         delocate-listdeps dist/*.whl || true
         
-        # Delocate the wheel - it will bundle dependencies
-        # Note: If binaries contain multiple architectures, delocate may add multiple platform tags
+        # Delocate the wheel - bundle dependencies
+        # Since binaries are single-arch, delocate should not add dual architecture tags
         delocate-wheel -v dist/*.whl
         
-        # Check the resulting wheel name
         echo "Wheel files after delocate:"
         ls -la dist/*.whl
     
