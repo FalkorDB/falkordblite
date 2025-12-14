@@ -1,41 +1,293 @@
-# GitHub Actions Workflows
+# GitHub Copilot Instructions for FalkorDBLite
 
-This directory contains the CI/CD workflows for FalkorDBLite.
+## Repository Overview
 
-## Workflows
+FalkorDBLite is a self-contained Python interface to the FalkorDB graph database. It provides enhanced versions of Redis-Py Python bindings with FalkorDB graph database functionality, embedding both a Redis server and the FalkorDB module for graph operations.
 
-### CI Workflow (`ci.yml`)
+**Key Features:**
+- Embedded Redis server with FalkorDB module (automatically installed and managed)
+- Full FalkorDB graph database operations using Cypher queries
+- Compatible Redis key-value operations
+- Secure default configuration (accessible only by creating user)
 
-Runs on every push and pull request to `master`/`main` branches. This workflow:
+## Project Structure
 
-- **Tests**: Runs the test suite across Python versions 3.8, 3.9, 3.10, 3.11, and 3.12
-- **Verification**: Executes the `verify_install.py` script to ensure installation works correctly
-- **Linting**: Runs code quality checks with `pylint` and `pycodestyle`
-- **Build**: Builds source distribution and wheel packages
-- **Coverage**: Uploads code coverage results to Codecov
+```
+falkordblite/
+├── .github/              # GitHub Actions workflows and configuration
+│   ├── workflows/        # CI/CD pipeline definitions
+│   │   ├── ci.yml       # Test, lint, and build workflow
+│   │   ├── publish.yml  # PyPI publishing workflow
+│   │   └── spellcheck.yml # Spell checking workflow
+│   └── INSTRUCTIONS.md  # This file
+├── redislite/           # Main package source code
+│   ├── __init__.py      # Package initialization and metadata
+│   ├── client.py        # Redis client wrapper
+│   ├── falkordb_client.py # FalkorDB graph database client
+│   ├── configuration.py # Redis server configuration
+│   ├── debug.py         # Debug utilities
+│   └── patch.py         # Monkey patching utilities
+├── tests/               # Test suite
+│   ├── test_client.py   # Redis client tests
+│   ├── test_falkordb.py # FalkorDB functionality tests
+│   ├── test_configuration.py # Configuration tests
+│   └── ...
+├── docs/                # Documentation
+├── build_scripts/       # Build helper scripts
+├── src/                 # C extension sources (minimal)
+├── setup.py            # Package setup and build configuration
+├── pyproject.toml      # Build system configuration
+├── pytest.ini          # Pytest configuration
+├── .pylintrc           # Pylint configuration
+└── requirements.txt    # Runtime dependencies
+```
 
-### Publish Workflow (`publish.yml`)
+## Development Setup
 
-Triggered when a new release is published. This workflow:
+### Prerequisites
+- Python 3.12 or higher (3.13, 3.14 supported)
+- Build tools (gcc, make, python3-dev on Linux; Xcode CLI tools on macOS)
+- macOS: OpenMP runtime library (`brew install libomp`)
 
-- **Builds**: Creates source distribution and wheel packages
-- **Validates**: Checks package integrity with `twine check`
-- **Publishes**: Uploads the packages to PyPI using Trusted Publishing (OIDC)
+### Installation for Development
 
-## PyPI Configuration Required
+```bash
+# Clone the repository
+git clone https://github.com/FalkorDB/falkordblite.git
+cd falkordblite
 
-This workflow uses PyPI's Trusted Publishing feature, which eliminates the need for API tokens. To set this up:
+# Create and activate virtual environment
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-1. Log in to PyPI as the package owner
-2. Navigate to your package's settings
-3. Add a new "Trusted Publisher" with the following details:
-   - **Owner**: FalkorDB
-   - **Repository name**: falkordblite
-   - **Workflow name**: publish.yml
-   - **Environment name**: (leave empty)
+# Install build dependencies
+pip install setuptools wheel
 
-For more information, see: https://docs.pypi.org/trusted-publishers/
+# Install runtime dependencies
+pip install -r requirements.txt
 
-## Manual Triggering
+# Build the project (compiles Redis, downloads FalkorDB module)
+python setup.py build
 
-Both workflows support manual triggering via the GitHub Actions UI using the `workflow_dispatch` event.
+# Install in editable mode for development
+pip install -e .
+```
+
+The `python setup.py build` command will:
+1. Download and compile Redis from source (version 8.2.2)
+2. Download the FalkorDB module (version v4.14.7)
+3. Copy binaries to `redislite/bin/` with proper permissions
+
+## Key Components
+
+### 1. Redis Client (`redislite/client.py`)
+- Wraps redis-py client
+- Manages embedded Redis server lifecycle
+- Provides standard Redis key-value operations
+- Handles server configuration and cleanup
+
+### 2. FalkorDB Client (`redislite/falkordb_client.py`)
+- Extends Redis client with graph database capabilities
+- Dynamically loads falkordb-py Python package
+- Provides `FalkorDB` class for graph operations
+- Implements `Graph` class for Cypher query execution
+
+### 3. Configuration (`redislite/configuration.py`)
+- Generates Redis server configuration
+- Manages server settings and security
+- Handles persistence and storage options
+
+## Testing
+
+### Running Tests
+
+```bash
+# Install test dependencies
+pip install pytest pytest-cov
+
+# Run all tests
+pytest tests/
+
+# Run with coverage
+pytest tests/ --cov=redislite --cov-report=xml --cov-report=term-missing
+
+# Run specific test file
+pytest tests/test_falkordb.py
+
+# Run specific test
+pytest tests/test_falkordb.py::test_graph_operations
+```
+
+### Test Strategy
+- Unit tests for individual components
+- Integration tests for Redis and FalkorDB operations
+- Configuration and patching tests
+- All tests use pytest framework
+- Coverage tracking with pytest-cov
+
+### Verification Script
+After installation, verify functionality:
+```bash
+python verify_install.py
+```
+
+## Linting and Code Quality
+
+### Pylint
+```bash
+# Install pylint
+pip install pylint
+
+# Run pylint on package
+pylint redislite
+
+# With parseable output (CI format)
+pylint --output-format=parseable redislite
+```
+
+Configuration: `.pylintrc`
+
+### Pycodestyle (PEP 8)
+```bash
+# Install pycodestyle
+pip install pycodestyle
+
+# Run pycodestyle
+pycodestyle redislite
+```
+
+### Spell Checking
+```bash
+# Uses pyspelling with .spellcheck.yml configuration
+# Wordlist: .wordlist.txt
+```
+
+## Build Process
+
+### Building Distribution Packages
+
+```bash
+# Build source distribution
+python setup.py sdist
+
+# Build wheel
+python setup.py bdist_wheel
+
+# Using build module (alternative)
+pip install build
+python -m build
+```
+
+### Environment Variables
+- `REDIS_VERSION`: Redis version to use (default: 8.2.2)
+- `FALKORDB_VERSION`: FalkorDB module version (default: v4.14.7)
+
+## CI/CD Workflows
+
+### CI Workflow (`.github/workflows/ci.yml`)
+Runs on push and PR to master/main branches:
+- **Test**: Python 3.12, 3.13, 3.14 on Ubuntu and macOS
+- **Lint**: pylint and pycodestyle checks
+- **Build**: Source distribution and wheel packages
+- **Coverage**: Upload to Codecov
+
+### Publish Workflow (`.github/workflows/publish.yml`)
+Triggered on release publication:
+- Builds packages
+- Validates with twine
+- Publishes to PyPI using Trusted Publishing (OIDC)
+
+## Coding Standards
+
+### Python Style
+- Follow PEP 8 style guide
+- Use pylint for code quality checks
+- Type hints encouraged but not required
+- Docstrings for public APIs (Google or NumPy style)
+
+### File Headers
+All source files should include copyright header:
+```python
+# Copyright (c) 2024, FalkorDB
+# Copyrights licensed under the New BSD License
+# See the accompanying LICENSE.txt file for terms.
+```
+
+### Import Organization
+1. Standard library imports
+2. Third-party imports
+3. Local package imports
+4. Use absolute imports for package modules
+
+### Error Handling
+- Use specific exception types
+- Provide informative error messages
+- Clean up resources (files, processes) on errors
+
+## Common Tasks
+
+### Adding New FalkorDB Features
+1. Check falkordb-py for upstream API changes
+2. Add wrapper methods in `falkordb_client.py`
+3. Maintain compatibility with embedded Redis client
+4. Add tests in `tests/test_falkordb.py`
+
+### Updating Redis Version
+1. Set `REDIS_VERSION` environment variable
+2. Run `python setup.py build`
+3. Test with full test suite
+4. Update version in CI workflows
+
+### Updating FalkorDB Module
+1. Set `FALKORDB_VERSION` environment variable
+2. Run `python setup.py build`
+3. Verify module loads correctly
+4. Test graph operations
+
+### Debugging
+```python
+# Use debug module for environment info
+python -m redislite.debug
+```
+
+## Dependencies
+
+### Runtime Dependencies (requirements.txt)
+- `redis>=4.5`: Redis Python client
+- `psutil`: Process and system utilities
+- `setuptools>38.0`: Build system
+- `falkordb`: FalkorDB Python client (dynamically loaded)
+
+### Development Dependencies
+- `pytest`: Testing framework
+- `pytest-cov`: Coverage reporting
+- `pylint`: Code quality checker
+- `pycodestyle`: PEP 8 checker
+
+## Troubleshooting
+
+See [TROUBLESHOOTING.md](../TROUBLESHOOTING.md) for common issues:
+- Missing OpenMP library on macOS
+- Build failures
+- Module loading issues
+- Binary permissions
+
+## Contributing
+
+See [CONTRIBUTING.md](../CONTRIBUTING.md) for:
+- Bug reporting guidelines
+- Feature request process
+- Pull request workflow
+- Code review expectations
+
+## Resources
+
+- **FalkorDB**: https://www.falkordb.com/
+- **FalkorDB Documentation**: https://docs.falkordb.com/
+- **FalkorDB Python Client**: https://github.com/FalkorDB/falkordb-py
+- **Redis Documentation**: https://redis.io/documentation
+- **PyPI Package**: https://pypi.org/project/falkordblite/
+
+## License
+
+FalkorDBLite is Free software under the New BSD license. See [LICENSE.txt](../LICENSE.txt) for details.
