@@ -15,7 +15,7 @@ Version information is now centralized in a **single source of truth** to make u
 5. **`setup.py`** - Has fallback defaults that should match `.versions.yml`
 6. **`build_scripts/update_redis_server.py`** - Has fallback defaults that should match `.versions.yml`
 
-**Note**: GitHub Actions workflows automatically read from `.versions.yml` using `yq` (YAML processor). Python scripts use environment variables with fallback defaults.
+**Note**: GitHub Actions workflows automatically read from `.versions.yml` using Python's YAML parser. Python scripts use environment variables with fallback defaults.
 
 ### Version Defaults in Code
 
