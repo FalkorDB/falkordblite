@@ -8,6 +8,8 @@ import tarfile
 import tempfile
 
 
+# Version default - can be overridden via environment variable
+# See .versions.yml for centralized version configuration
 redis_version = os.environ.get('REDIS_VERSION', '8.2.2')
 url = f'http://download.redis.io/releases/redis-{redis_version}.tar.gz'
 

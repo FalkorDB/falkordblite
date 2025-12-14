@@ -3,7 +3,9 @@ shared:
   environment:
     CHANGELOG_FILENAME: docs/source/topic/changelog.md
     PACKAGE_DIRECTORY: redislite
+    # Redis version for legacy builds - see .versions.yml for centralized config
     REDIS_VERSION: '6.2.14'
+    FALKORDB_VERSION: 'v4.14.7'
     TOX_ENVLIST: py38,py39,py310,py311
   steps:
     - postinit_os: build_scripts/update_redis_server.py
