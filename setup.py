@@ -279,7 +279,7 @@ class InstallRedis(install):
             'running InstallRedis %s -> %s',
             self.build_scripts, self.install_scripts
         )
-        
+
         # Copy only standalone executables to install_scripts (bin/), not shared libraries
         # falkordb.so should only be in redislite/bin/ where @loader_path references work
         executables_for_bin = ['redis-server', 'redis-cli']
