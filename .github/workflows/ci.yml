@@ -175,7 +175,8 @@ jobs:
     runs-on: ubuntu-latest
     
     env:
-      REDIS_VERSION: ${{ env.REDIS_VERSION_LEGACY }}
+      # Override to use legacy Redis version for this build
+      REDIS_VERSION: '6.2.14'
     
     steps:
     - uses: actions/checkout@v4
