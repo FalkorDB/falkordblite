@@ -155,6 +155,8 @@ class BuildRedis(build):
         # Pass architecture flags to make if set (for macOS single-arch builds)
         if 'CFLAGS' in os.environ:
             cmd.append('CFLAGS=' + os.environ['CFLAGS'])
+        if 'CXXFLAGS' in os.environ:
+            cmd.append('CXXFLAGS=' + os.environ['CXXFLAGS'])
         if 'LDFLAGS' in os.environ:
             cmd.append('LDFLAGS=' + os.environ['LDFLAGS'])
 
