@@ -279,14 +279,22 @@ class InstallRedis(install):
             'running InstallRedis %s -> %s',
             self.build_scripts, self.install_scripts
         )
-        self.copy_tree(self.build_scripts, self.install_scripts)
+        
+        # Copy only standalone executables to install_scripts (bin/), not shared libraries
+        # falkordb.so should only be in redislite/bin/ where @loader_path references work
+        executables_for_bin = ['redis-server', 'redis-cli']
+        for executable in executables_for_bin:
+            src = os.path.join(self.build_scripts, executable)
+            dst = os.path.join(self.install_scripts, executable)
+            if os.path.exists(src):
+                self.copy_file(src, dst)
+                logger.debug('Copied %s -> %s', src, dst)
 
-        # Set executable permissions on FalkorDB module after installation
-        for install_dir in [module_bin, self.install_scripts]:
-            falkordb_path = os.path.join(install_dir, 'falkordb.so')
-            if os.path.exists(falkordb_path):
-                os.chmod(falkordb_path, 0o755)
-                logger.debug('Set executable permissions on %s', falkordb_path)
+        # Set executable permissions on FalkorDB module in module_bin only
+        falkordb_path = os.path.join(module_bin, 'falkordb.so')
+        if os.path.exists(falkordb_path):
+            os.chmod(falkordb_path, 0o755)
+            logger.debug('Set executable permissions on %s', falkordb_path)
 
         install_scripts = self.install_scripts
         print('install_scripts: %s' % install_scripts)
