@@ -145,11 +145,18 @@ class BuildRedis(build):
 
         os.environ['CC'] = 'gcc'
         os.environ['PREFIX'] = REDIS_PATH
+        
         cmd = [
             'make',
             'MALLOC=libc',
             'V=' + str(self.verbose),
         ]
+        
+        # Pass architecture flags to make if set (for macOS single-arch builds)
+        if 'CFLAGS' in os.environ:
+            cmd.append('CFLAGS=' + os.environ['CFLAGS'])
+        if 'LDFLAGS' in os.environ:
+            cmd.append('LDFLAGS=' + os.environ['LDFLAGS'])
 
         targets = ['install']
         cmd.extend(targets)
