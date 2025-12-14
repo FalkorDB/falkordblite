@@ -3,6 +3,11 @@ description: 'Load Redis and FalkorDB versions from .versions.yml'
 runs:
   using: 'composite'
   steps:
+    - name: Ensure PyYAML is installed
+      shell: bash
+      run: |
+        python3 -m pip install --quiet PyYAML || true
+    
     - name: Load versions from .versions.yml
       shell: bash
       run: |
