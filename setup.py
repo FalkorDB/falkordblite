@@ -37,6 +37,8 @@ REDIS_SERVER_METADATA = {}
 REDIS_VERSION = os.environ.get('REDIS_VERSION', '8.2.2')
 REDIS_URL = f'http://download.redis.io/releases/redis-{REDIS_VERSION}.tar.gz'
 FALKORDB_VERSION = os.environ.get('FALKORDB_VERSION', 'v4.14.7')
+# Executables to install to virtualenv's bin/ directory (standalone CLI tools only)
+INSTALL_BIN_EXECUTABLES = ['redis-server', 'redis-cli']
 install_scripts = ''
 try:
     VERSION = check_output(['meta', 'get', 'package.version']).decode(errors='ignore')
@@ -282,13 +284,14 @@ class InstallRedis(install):
 
         # Copy only standalone executables to install_scripts (bin/), not shared libraries
         # falkordb.so should only be in redislite/bin/ where @loader_path references work
-        executables_for_bin = ['redis-server', 'redis-cli']
-        for executable in executables_for_bin:
+        for executable in INSTALL_BIN_EXECUTABLES:
             src = os.path.join(self.build_scripts, executable)
             dst = os.path.join(self.install_scripts, executable)
             if os.path.exists(src):
                 self.copy_file(src, dst)
                 logger.debug('Copied %s -> %s', src, dst)
+            else:
+                logger.warning('Expected executable not found: %s', src)
 
         # Set executable permissions on FalkorDB module in module_bin only
         falkordb_path = os.path.join(module_bin, 'falkordb.so')
