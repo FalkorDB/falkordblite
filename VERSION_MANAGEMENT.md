@@ -4,14 +4,16 @@ This document describes how to update Redis and FalkorDB versions in the FalkorD
 
 ## Centralized Configuration
 
-Version information is now centralized to make updates easier and prevent mistakes. The primary source of truth is defined in the following locations:
+Version information is now centralized to make updates easier and prevent mistakes.
 
-### Primary Configuration Files
+### Configuration Files
 
-1. **`.versions.yml`** - Central reference file documenting current versions
-2. **`.github/workflows/ci.yml`** - Global `env` section at the workflow level
-3. **`.github/workflows/publish.yml`** - Global `env` section at the workflow level
-4. **`screwdriver.yaml`** - Shared environment variables section
+1. **`.versions.yml`** - Reference/documentation file listing all current versions in one place
+2. **`.github/workflows/ci.yml`** - **Primary source of truth** for CI builds - Global `env` section at the workflow level
+3. **`.github/workflows/publish.yml`** - **Primary source of truth** for publishing - Global `env` section at the workflow level
+4. **`screwdriver.yaml`** - Configuration for Screwdriver CI - Shared environment variables section
+
+**Note**: The `.versions.yml` file serves as documentation and a quick reference. The actual versions used by CI/CD are defined in the GitHub Actions workflow files and screwdriver.yaml.
 
 ### Version Defaults in Code
 
@@ -75,8 +77,8 @@ redis_version = os.environ.get('REDIS_VERSION', '8.2.2')
 ## Version Differences
 
 Note that some components may use different Redis versions:
-- **Main CI/CD pipeline**: Uses the current Redis version (8.2.2)
-- **Legacy builds** (e.g., build-wheels job in ci.yml): Uses the legacy version (6.2.14)
+- **Main CI/CD pipeline** (test and test-macos jobs): Uses the current Redis version (8.2.2)
+- **Legacy builds** (the "Build Wheels" job in `.github/workflows/ci.yml`): Uses the legacy version (6.2.14)
 
 This is intentional to support different build environments and compatibility requirements.
 

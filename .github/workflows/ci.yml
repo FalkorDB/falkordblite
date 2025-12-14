@@ -175,7 +175,8 @@ jobs:
     runs-on: ubuntu-latest
     
     env:
-      # Override to use legacy Redis version for this build, keep FalkorDB version from workflow level
+      # Override to use legacy Redis version for this build
+      # FALKORDB_VERSION is inherited from workflow-level env
       REDIS_VERSION: '6.2.14'
     
     steps:
