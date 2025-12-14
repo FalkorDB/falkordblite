@@ -26,8 +26,21 @@ jobs:
     
     - name: Load versions from .versions.yml
       run: |
+        set -e
+        if [ ! -f .versions.yml ]; then
+          echo "Error: .versions.yml not found"
+          exit 1
+        fi
         REDIS_VERSION=$(yq eval '.redis_version' .versions.yml)
         FALKORDB_VERSION=$(yq eval '.falkordb_version' .versions.yml)
+        if [ -z "$REDIS_VERSION" ] || [ "$REDIS_VERSION" = "null" ]; then
+          echo "Error: redis_version not found in .versions.yml"
+          exit 1
+        fi
+        if [ -z "$FALKORDB_VERSION" ] || [ "$FALKORDB_VERSION" = "null" ]; then
+          echo "Error: falkordb_version not found in .versions.yml"
+          exit 1
+        fi
         echo "REDIS_VERSION=$REDIS_VERSION" >> $GITHUB_ENV
         echo "FALKORDB_VERSION=$FALKORDB_VERSION" >> $GITHUB_ENV
         echo "Loaded versions - Redis: $REDIS_VERSION, FalkorDB: $FALKORDB_VERSION"
