@@ -7,12 +7,6 @@ on:
     branches: [ master, main ]
   workflow_dispatch:
 
-# Global environment variables - centralized version configuration
-env:
-  REDIS_VERSION: '8.2.2'
-  FALKORDB_VERSION: 'v4.14.7'
-  REDIS_VERSION_LEGACY: '6.2.14'
-
 jobs:
   test:
     name: Test on Python ${{ matrix.python-version }}
@@ -24,6 +18,14 @@ jobs:
     
     steps:
     - uses: actions/checkout@v4
+    
+    - name: Load versions from .versions.yml
+      run: |
+        REDIS_VERSION=$(yq eval '.redis_version' .versions.yml)
+        FALKORDB_VERSION=$(yq eval '.falkordb_version' .versions.yml)
+        echo "REDIS_VERSION=$REDIS_VERSION" >> $GITHUB_ENV
+        echo "FALKORDB_VERSION=$FALKORDB_VERSION" >> $GITHUB_ENV
+        echo "Loaded versions - Redis: $REDIS_VERSION, FalkorDB: $FALKORDB_VERSION"
     
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
@@ -97,6 +99,14 @@ jobs:
     
     steps:
     - uses: actions/checkout@v4
+    
+    - name: Load versions from .versions.yml
+      run: |
+        REDIS_VERSION=$(yq eval '.redis_version' .versions.yml)
+        FALKORDB_VERSION=$(yq eval '.falkordb_version' .versions.yml)
+        echo "REDIS_VERSION=$REDIS_VERSION" >> $GITHUB_ENV
+        echo "FALKORDB_VERSION=$FALKORDB_VERSION" >> $GITHUB_ENV
+        echo "Loaded versions - Redis: $REDIS_VERSION, FalkorDB: $FALKORDB_VERSION"
     
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
@@ -174,13 +184,16 @@ jobs:
     name: Build Wheels
     runs-on: ubuntu-latest
     
-    env:
-      # Override to use legacy Redis version for this build
-      # FALKORDB_VERSION is inherited from workflow-level env
-      REDIS_VERSION: '6.2.14'
-    
     steps:
     - uses: actions/checkout@v4
+    
+    - name: Load versions from .versions.yml
+      run: |
+        REDIS_VERSION=$(yq eval '.redis_version' .versions.yml)
+        FALKORDB_VERSION=$(yq eval '.falkordb_version' .versions.yml)
+        echo "REDIS_VERSION=$REDIS_VERSION" >> $GITHUB_ENV
+        echo "FALKORDB_VERSION=$FALKORDB_VERSION" >> $GITHUB_ENV
+        echo "Loaded versions - Redis: $REDIS_VERSION, FalkorDB: $FALKORDB_VERSION"
     
     - name: Set up Python
       uses: actions/setup-python@v5

@@ -4,16 +4,18 @@ This document describes how to update Redis and FalkorDB versions in the FalkorD
 
 ## Centralized Configuration
 
-Version information is now centralized to make updates easier and prevent mistakes.
+Version information is now centralized in a **single source of truth** to make updates easier and prevent mistakes.
 
 ### Configuration Files
 
-1. **`.versions.yml`** - Reference/documentation file listing all current versions in one place
-2. **`.github/workflows/ci.yml`** - **Primary source of truth** for CI builds - Global `env` section at the workflow level
-3. **`.github/workflows/publish.yml`** - **Primary source of truth** for publishing - Global `env` section at the workflow level
-4. **`screwdriver.yaml`** - Configuration for Screwdriver CI - Shared environment variables section
+1. **`.versions.yml`** - **PRIMARY SOURCE OF TRUTH** - All version numbers are defined here
+2. **`.github/workflows/ci.yml`** - Reads versions from `.versions.yml` at runtime
+3. **`.github/workflows/publish.yml`** - Reads versions from `.versions.yml` at runtime
+4. **`screwdriver.yaml`** - Configuration for Screwdriver CI - Should be manually synced with `.versions.yml`
+5. **`setup.py`** - Has fallback defaults that should match `.versions.yml`
+6. **`build_scripts/update_redis_server.py`** - Has fallback defaults that should match `.versions.yml`
 
-**Note**: The `.versions.yml` file serves as documentation and a quick reference. The actual versions used by CI/CD are defined in the GitHub Actions workflow files and screwdriver.yaml.
+**Note**: GitHub Actions workflows automatically read from `.versions.yml` using `yq` (YAML processor). Python scripts use environment variables with fallback defaults.
 
 ### Version Defaults in Code
 
@@ -23,45 +25,30 @@ The following Python files have default version values that can be overridden by
 
 ## How to Update Versions
 
-To update Redis or FalkorDB versions across the entire project:
+To update Redis or FalkorDB versions across the entire project, you only need to update **one file**:
 
 ### 1. Update `.versions.yml`
-Edit the file and update the appropriate version numbers:
+This is the **only** change needed for GitHub Actions workflows:
+
 ```yaml
 redis_version: '8.2.2'          # Current Redis version
 falkordb_version: 'v4.14.7'     # Current FalkorDB version
-redis_version_legacy: '6.2.14'  # Legacy Redis version for specific builds
 ```
 
-### 2. Update GitHub Actions Workflows
-Edit the global `env` section in both workflow files:
+The GitHub Actions workflows (`.github/workflows/ci.yml` and `.github/workflows/publish.yml`) will automatically read these values.
 
-**`.github/workflows/ci.yml`**:
-```yaml
-env:
-  REDIS_VERSION: '8.2.2'
-  FALKORDB_VERSION: 'v4.14.7'
-  REDIS_VERSION_LEGACY: '6.2.14'
-```
+### 2. Update Screwdriver Configuration (if used)
+If you use Screwdriver CI, manually sync the values in `screwdriver.yaml`:
 
-**`.github/workflows/publish.yml`**:
-```yaml
-env:
-  REDIS_VERSION: '8.2.2'
-  FALKORDB_VERSION: 'v4.14.7'
-```
-
-### 3. Update Screwdriver Configuration
-Edit the shared environment section in `screwdriver.yaml`:
 ```yaml
 shared:
   environment:
-    REDIS_VERSION: '6.2.14'
+    REDIS_VERSION: '8.2.2'
     FALKORDB_VERSION: 'v4.14.7'
 ```
 
-### 4. Update Python Defaults (if needed)
-The default values in `setup.py` and `build_scripts/update_redis_server.py` serve as fallbacks when environment variables are not set. Update them to match the primary versions:
+### 3. Update Python Defaults (optional)
+The default values in `setup.py` and `build_scripts/update_redis_server.py` serve as fallbacks when environment variables are not set. It's good practice to keep them in sync:
 
 **`setup.py`**:
 ```python
@@ -74,13 +61,14 @@ FALKORDB_VERSION = os.environ.get('FALKORDB_VERSION', 'v4.14.7')
 redis_version = os.environ.get('REDIS_VERSION', '8.2.2')
 ```
 
-## Version Differences
+## Unified Version Strategy
 
-Note that some components may use different Redis versions:
-- **Main CI/CD pipeline** (test and test-macos jobs): Uses the current Redis version (8.2.2)
-- **Legacy builds** (the "Build Wheels" job in `.github/workflows/ci.yml`): Uses the legacy version (6.2.14)
+All CI/CD jobs now use the same Redis and FalkorDB versions defined in `.versions.yml`. This ensures consistency across:
+- Test jobs (Ubuntu and macOS)
+- Build jobs (wheel creation)
+- Publishing workflows
 
-This is intentional to support different build environments and compatibility requirements.
+Previously, some jobs used different Redis versions, but this has been unified for simplicity and consistency.
 
 ## Testing After Updates
 

@@ -1,8 +1,6 @@
 # Centralized version configuration for FalkorDBLite
-# This file defines the versions of Redis and FalkorDB used across CI/CD and build processes
+# This file is the single source of truth for Redis and FalkorDB versions
+# All CI/CD workflows and build scripts read from this file
 
 redis_version: '8.2.2'
 falkordb_version: 'v4.14.7'
-
-# Legacy Redis version for specific build configurations
-redis_version_legacy: '6.2.14'
