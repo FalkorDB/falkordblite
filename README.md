@@ -403,6 +403,8 @@ async def main():
 asyncio.run(main())
 ```
 
+For complete async API documentation including web framework integration, see [docs/ASYNC_API.md](docs/ASYNC_API.md).
+
 ## More Information
 
 FalkorDBLite combines the power of Redis and FalkorDB graph database in an embedded Python package.
