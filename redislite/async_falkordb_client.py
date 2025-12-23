@@ -8,6 +8,7 @@ This module provides async versions of the FalkorDB client classes
 that work with the embedded Redis + FalkorDB server.
 """
 import asyncio
+import json
 from typing import Any, List, Dict, Optional
 
 from .async_client import AsyncRedis
@@ -78,7 +79,6 @@ class AsyncGraph:
         # Add parameters if provided
         if params:
             # Convert params to the format expected by FalkorDB
-            import json
             command_args.append(json.dumps(params))
         
         # Add timeout if provided
@@ -117,7 +117,6 @@ class AsyncGraph:
         
         # Add parameters if provided
         if params:
-            import json
             command_args.append(json.dumps(params))
         
         # Add timeout if provided
