@@ -153,7 +153,12 @@ for _location in _falkordb_locations:
         __falkordb_module__ = _location
         break  # pragma: no cover
 
-__all__ = ['client', 'configuration', 'debug', 'patch', 'falkordb_client']
+__all__ = [
+    'client', 'configuration', 'debug', 'patch', 'falkordb_client',
+    'async_client', 'async_falkordb_client'
+]
 
 from .client import Redis, StrictRedis  # NOQA
 from .falkordb_client import FalkorDB, Graph  # NOQA
+from .async_client import AsyncRedis, AsyncStrictRedis  # NOQA
+from .async_falkordb_client import AsyncFalkorDB, AsyncGraph  # NOQA
