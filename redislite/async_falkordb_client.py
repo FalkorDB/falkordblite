@@ -54,7 +54,6 @@ class AsyncGraph:
         """
         self.client = client
         self.name = name
-        self._name = name
     
     async def query(
         self,

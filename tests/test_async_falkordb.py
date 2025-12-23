@@ -49,7 +49,6 @@ class TestAsyncFalkorDBClient(unittest.TestCase):
             finally:
                 # Cleanup
                 if os.path.exists(temp_dir):
-
                     shutil.rmtree(temp_dir)
         
         asyncio.run(run_test())
@@ -85,7 +84,6 @@ class TestAsyncFalkorDBClient(unittest.TestCase):
             finally:
                 # Cleanup
                 if os.path.exists(temp_dir):
-
                     shutil.rmtree(temp_dir)
         
         asyncio.run(run_test())
@@ -104,7 +102,6 @@ class TestAsyncFalkorDBClient(unittest.TestCase):
             finally:
                 # Cleanup
                 if os.path.exists(temp_dir):
-
                     shutil.rmtree(temp_dir)
         
         asyncio.run(run_test())
@@ -132,7 +129,6 @@ class TestAsyncFalkorDBClient(unittest.TestCase):
             finally:
                 # Cleanup
                 if os.path.exists(temp_dir):
-
                     shutil.rmtree(temp_dir)
         
         asyncio.run(run_test())
@@ -160,7 +156,6 @@ class TestAsyncFalkorDBClient(unittest.TestCase):
             finally:
                 # Cleanup
                 if os.path.exists(temp_dir):
-
                     shutil.rmtree(temp_dir)
         
         asyncio.run(run_test())
