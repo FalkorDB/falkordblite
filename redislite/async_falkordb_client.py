@@ -17,6 +17,24 @@ from .async_client import AsyncRedis
 __all__ = ["AsyncFalkorDB", "AsyncGraph"]
 
 
+class _SimpleResult:
+    """
+    Simple result wrapper for FalkorDB query results.
+    
+    This provides a basic interface for accessing query results
+    when the full falkordb QueryResult is not available.
+    """
+    def __init__(self, result):
+        """Initialize with raw result from Redis."""
+        # Handle list results
+        if isinstance(result, list):
+            # First element is usually the result set if list is not empty
+            self.result_set = result[0] if result and len(result) > 0 else []
+        else:
+            self.result_set = []
+        self._raw = result
+
+
 class AsyncGraph:
     """
     Async Graph class for executing Cypher queries asynchronously.
@@ -168,26 +186,9 @@ class AsyncGraph:
         Returns:
             A simple result object with result_set attribute
         """
-        # Define a single SimpleResult class
-        class SimpleResult:
-            def __init__(self, result):
-                # Handle list results
-                if isinstance(result, list):
-                    # First element is usually the result set if list is not empty
-                    self.result_set = result[0] if result and len(result) > 0 else []
-                else:
-                    self.result_set = []
-                self._raw = result
-        
-        # Try to use falkordb's QueryResult if available
-        try:
-            from falkordb import QueryResult
-            # Note: If we wanted to use the real QueryResult, we'd need to 
-            # pass the proper graph context. For now, we use SimpleResult.
-            return SimpleResult(raw_result)
-        except ImportError:
-            # Fallback if falkordb is not available
-            return SimpleResult(raw_result)
+        # Try to use falkordb's QueryResult if available (future enhancement)
+        # For now, we use our simple result wrapper
+        return _SimpleResult(raw_result)
 
 
 class AsyncFalkorDB:

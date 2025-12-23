@@ -14,7 +14,7 @@ from typing import Optional
 
 import redis.asyncio as aioredis
 
-from .client import RedisMixin
+from .client import RedisMixin, Redis as SyncRedis
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +56,6 @@ class AsyncRedis(RedisMixin):
         """
         # Initialize the server using the RedisMixin
         # We need to call the mixin's __init__ which will start the server
-        from .client import Redis as SyncRedis
         
         # Start the embedded server using sync client
         self._sync_client = SyncRedis(dbfilename=dbfilename, serverconfig=serverconfig)
