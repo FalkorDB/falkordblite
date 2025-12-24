@@ -1,5 +1,5 @@
 # Runtime dependencies for falkordblite
-redis>=4.5
-falkordb>=1.2.0
+redis>=5.0.0
+falkordb>=1.2.2
 psutil
 setuptools>38.0
