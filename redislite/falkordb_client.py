@@ -99,6 +99,7 @@ class _EmbeddedFalkorDBMixin:
         self.client = Redis(
             dbfilename=dbfilename,
             serverconfig=serverconfig or {},
+            decode_responses=True,
             **kwargs
         )
         self.connection = self.client
