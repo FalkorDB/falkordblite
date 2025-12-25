@@ -96,7 +96,7 @@ class TestAsyncFalkorDBClient(unittest.TestCase):
             # Test set and get
             await redis_conn.set('key', 'value')
             value = await redis_conn.get('key')
-            self.assertEqual(value, b'value')
+            self.assertEqual(value, 'value')
             
             # Test delete
             await redis_conn.delete('key')

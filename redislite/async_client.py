@@ -77,7 +77,7 @@ class AsyncRedis(RedisMixin):
         # Create the async Redis connection
         self._client = aioredis.Redis(
             unix_socket_path=self.socket_file,
-            decode_responses=False,
+            decode_responses=True,
             **kwargs
         )
         
