@@ -9,7 +9,7 @@ import tempfile
 
 
 redis_version = os.environ.get('REDIS_VERSION', '8.2.2')
-url = f'http://download.redis.io/releases/redis-{redis_version}.tar.gz'
+url = f'https://download.redis.io/releases/redis-{redis_version}.tar.gz'
 
 
 if __name__ == "__main__":
