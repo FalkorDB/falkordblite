@@ -37,6 +37,8 @@ REDIS_SERVER_METADATA = {}
 REDIS_VERSION = os.environ.get('REDIS_VERSION', '8.2.2')
 REDIS_URL = f'http://download.redis.io/releases/redis-{REDIS_VERSION}.tar.gz'
 FALKORDB_VERSION = os.environ.get('FALKORDB_VERSION', 'v4.14.7')
+# Executables to install to virtualenv's bin/ directory (standalone CLI tools only)
+INSTALL_BIN_EXECUTABLES = ['redis-server', 'redis-cli']
 install_scripts = ''
 try:
     VERSION = check_output(['meta', 'get', 'package.version']).decode(errors='ignore')
@@ -279,14 +281,23 @@ class InstallRedis(install):
             'running InstallRedis %s -> %s',
             self.build_scripts, self.install_scripts
         )
-        self.copy_tree(self.build_scripts, self.install_scripts)
 
-        # Set executable permissions on FalkorDB module after installation
-        for install_dir in [module_bin, self.install_scripts]:
-            falkordb_path = os.path.join(install_dir, 'falkordb.so')
-            if os.path.exists(falkordb_path):
-                os.chmod(falkordb_path, 0o755)
-                logger.debug('Set executable permissions on %s', falkordb_path)
+        # Copy only standalone executables to install_scripts (bin/), not shared libraries
+        # falkordb.so should only be in redislite/bin/ where @loader_path references work
+        for executable in INSTALL_BIN_EXECUTABLES:
+            src = os.path.join(self.build_scripts, executable)
+            dst = os.path.join(self.install_scripts, executable)
+            if os.path.exists(src):
+                self.copy_file(src, dst)
+                logger.debug('Copied %s -> %s', src, dst)
+            else:
+                logger.warning('Expected executable not found: %s', src)
+
+        # Set executable permissions on FalkorDB module in module_bin only
+        falkordb_path = os.path.join(module_bin, 'falkordb.so')
+        if os.path.exists(falkordb_path):
+            os.chmod(falkordb_path, 0o755)
+            logger.debug('Set executable permissions on %s', falkordb_path)
 
         install_scripts = self.install_scripts
         print('install_scripts: %s' % install_scripts)
