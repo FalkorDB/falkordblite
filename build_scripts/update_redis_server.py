@@ -5,6 +5,7 @@ import pathlib
 import shutil
 import urllib.request
 import urllib.error
+import urllib.parse
 import tarfile
 import tempfile
 import time
@@ -55,7 +56,9 @@ def download_with_retry(url, max_retries=3, backoff_factor=2, token=None):
                     time.sleep(wait_time)
                 else:
                     logger.error(f'Failed to download {url} after {max_retries} attempts')
-                    if 'github.com' in url:
+                    # Parse URL to check if it's from GitHub
+                    parsed_url = urllib.parse.urlparse(url)
+                    if parsed_url.netloc == 'github.com' or parsed_url.netloc.endswith('.github.com'):
                         logger.error('For GitHub downloads, consider setting GITHUB_TOKEN environment variable')
                     raise
             else:
