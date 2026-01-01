@@ -105,6 +105,10 @@ class RedisMixin(object):
                     'Shutting down redis server with pid of %r', pid
                 )
                 try:
+                    # Skip shutdown if this client is managed by an async wrapper
+                    if getattr(self, '_async_managed', False):
+                        logger.debug('Skipping shutdown for async-managed client')
+                        return  # Let async wrapper handle shutdown
                     self.shutdown(save=True, now=True, force=True)
                     try:  # pragma: no cover
                         process = psutil.Process(pid)

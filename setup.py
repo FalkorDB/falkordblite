@@ -35,8 +35,9 @@ BASEPATH = os.path.dirname(os.path.abspath(__file__))
 REDIS_PATH = os.path.join(BASEPATH, 'redis.submodule')
 REDIS_SERVER_METADATA = {}
 REDIS_VERSION = os.environ.get('REDIS_VERSION', '8.2.2')
-REDIS_URL = f'http://download.redis.io/releases/redis-{REDIS_VERSION}.tar.gz'
-FALKORDB_VERSION = os.environ.get('FALKORDB_VERSION', 'v4.14.9')
+REDIS_URL = f'https://download.redis.io/releases/redis-{REDIS_VERSION}.tar.gz'
+FALKORDB_VERSION = os.environ.get('FALKORDB_VERSION', 'v4.14.11')
+
 install_scripts = ''
 try:
     VERSION = check_output(['meta', 'get', 'package.version']).decode(errors='ignore')

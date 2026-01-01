@@ -177,8 +177,8 @@ jobs:
     runs-on: ubuntu-latest
     
     env:
-      REDIS_VERSION: '6.2.14'
-      FALKORDB_VERSION: 'v4.14.9'
+      REDIS_VERSION: '8.2.2'
+      FALKORDB_VERSION: 'v4.14.11'
     
     steps:
     - uses: actions/checkout@v4
