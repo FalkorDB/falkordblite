@@ -8,6 +8,7 @@ import os
 import sys
 import unittest
 import pathlib
+import configparser
 
 
 class TestVersionManagement(unittest.TestCase):
@@ -16,143 +17,122 @@ class TestVersionManagement(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         self.repo_root = pathlib.Path(__file__).parent.parent
-        self.versions_file = self.repo_root / 'versions.txt'
+        self.setup_cfg_file = self.repo_root / 'setup.cfg'
         
-    def test_versions_file_exists(self):
-        """Test that versions.txt exists."""
+    def test_setup_cfg_exists(self):
+        """Test that setup.cfg exists."""
         self.assertTrue(
-            self.versions_file.exists(),
-            f"versions.txt should exist at {self.versions_file}"
+            self.setup_cfg_file.exists(),
+            f"setup.cfg should exist at {self.setup_cfg_file}"
         )
 
-    def test_versions_file_readable(self):
-        """Test that versions.txt can be read and parsed."""
-        versions = {}
-        with open(self.versions_file, 'r', encoding='utf-8') as f:
-            for line in f:
-                line = line.strip()
-                if line and not line.startswith('#') and '=' in line:
-                    key, value = line.split('=', 1)
-                    versions[key.strip()] = value.strip()
+    def test_build_versions_section_readable(self):
+        """Test that setup.cfg [build_versions] section can be read and parsed."""
+        config = configparser.ConfigParser()
+        config.read(self.setup_cfg_file)
         
-        self.assertIn('REDIS_VERSION', versions)
-        self.assertIn('FALKORDB_VERSION', versions)
+        self.assertIn('build_versions', config.sections(),
+                     "[build_versions] section should exist in setup.cfg")
+        
+        build_versions = config['build_versions']
+        self.assertIn('redis_version', build_versions,
+                     "redis_version should be in [build_versions]")
+        self.assertIn('falkordb_version', build_versions,
+                     "falkordb_version should be in [build_versions]")
         
         # Verify versions are not empty
-        self.assertTrue(versions['REDIS_VERSION'])
-        self.assertTrue(versions['FALKORDB_VERSION'])
+        redis_version = build_versions['redis_version']
+        falkordb_version = build_versions['falkordb_version']
         
-        # Verify REDIS_VERSION looks like a version number
-        redis_version = versions['REDIS_VERSION']
+        self.assertTrue(redis_version, "redis_version should not be empty")
+        self.assertTrue(falkordb_version, "falkordb_version should not be empty")
+        
+        # Verify redis_version looks like a version number
         self.assertRegex(
             redis_version, 
             r'^\d+\.\d+\.\d+$',
-            f"REDIS_VERSION '{redis_version}' should be in format X.Y.Z"
+            f"redis_version '{redis_version}' should be in format X.Y.Z"
         )
         
-        # Verify FALKORDB_VERSION looks like a version tag
-        falkordb_version = versions['FALKORDB_VERSION']
+        # Verify falkordb_version looks like a version tag
         self.assertTrue(
             falkordb_version.startswith('v'),
-            f"FALKORDB_VERSION '{falkordb_version}' should start with 'v'"
+            f"falkordb_version '{falkordb_version}' should start with 'v'"
         )
 
     def test_setup_py_reads_versions(self):
-        """Test that setup.py can read versions from versions.txt."""
+        """Test that setup.py can read versions from setup.cfg."""
         # Add the repo root to the path
         sys.path.insert(0, str(self.repo_root))
         
         # Import and use the shared utility
         try:
             from version_utils import get_redis_version, get_falkordb_version
-            redis_version = get_redis_version(str(self.versions_file))
-            falkordb_version = get_falkordb_version(str(self.versions_file))
-        except ImportError:
-            # Fallback to inline reading if utility not available
-            def read_versions_file():
-                versions = {}
-                if self.versions_file.exists():
-                    with open(self.versions_file, 'r', encoding='utf-8') as f:
-                        for line in f:
-                            line = line.strip()
-                            if line and not line.startswith('#') and '=' in line:
-                                key, value = line.split('=', 1)
-                                versions[key.strip()] = value.strip()
-                return versions
+            redis_version = get_redis_version(str(self.setup_cfg_file))
+            falkordb_version = get_falkordb_version(str(self.setup_cfg_file))
             
-            versions = read_versions_file()
-            redis_version = os.environ.get('REDIS_VERSION', versions.get('REDIS_VERSION', ''))
-            falkordb_version = os.environ.get('FALKORDB_VERSION', versions.get('FALKORDB_VERSION', ''))
-        
-        self.assertTrue(redis_version, "REDIS_VERSION should be set")
-        self.assertTrue(falkordb_version, "FALKORDB_VERSION should be set")
+            self.assertTrue(redis_version, "REDIS_VERSION should be set")
+            self.assertTrue(falkordb_version, "FALKORDB_VERSION should be set")
+        except ImportError:
+            self.skipTest("version_utils module not available")
 
     def test_version_utils_module(self):
         """Test that the version_utils module works correctly."""
         sys.path.insert(0, str(self.repo_root))
         
         try:
-            from version_utils import read_versions_file, get_redis_version, get_falkordb_version
+            from version_utils import read_versions_from_setup_cfg, get_redis_version, get_falkordb_version
             
-            # Test read_versions_file
-            versions = read_versions_file(str(self.versions_file))
+            # Test read_versions_from_setup_cfg
+            versions = read_versions_from_setup_cfg(str(self.setup_cfg_file))
             self.assertIn('REDIS_VERSION', versions)
             self.assertIn('FALKORDB_VERSION', versions)
             
             # Test get_redis_version
-            redis_version = get_redis_version(str(self.versions_file))
+            redis_version = get_redis_version(str(self.setup_cfg_file))
             self.assertRegex(redis_version, r'^\d+\.\d+\.\d+$')
             
             # Test get_falkordb_version
-            falkordb_version = get_falkordb_version(str(self.versions_file))
+            falkordb_version = get_falkordb_version(str(self.setup_cfg_file))
             self.assertTrue(falkordb_version.startswith('v'))
             
         except ImportError:
             self.skipTest("version_utils module not available")
 
-    def test_security_validation(self):
-        """Test that version_utils validates and handles invalid input properly."""
+    def test_version_utils_fails_without_setup_cfg(self):
+        """Test that version_utils raises appropriate errors when setup.cfg is missing."""
         sys.path.insert(0, str(self.repo_root))
         
         try:
-            from version_utils import read_versions_file
+            from version_utils import get_redis_version
             import tempfile
             
-            # Test that invalid characters in values are rejected
-            with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
-                f.write("REDIS_VERSION=8.2.2; rm -rf /\n")
+            # Test that missing file raises FileNotFoundError
+            with tempfile.TemporaryDirectory() as tmpdir:
+                nonexistent_cfg = os.path.join(tmpdir, 'nonexistent.cfg')
+                with self.assertRaises(FileNotFoundError):
+                    get_redis_version(nonexistent_cfg)
+                    
+        except ImportError:
+            self.skipTest("version_utils module not available")
+
+    def test_version_utils_fails_without_build_versions_section(self):
+        """Test that version_utils raises appropriate errors when [build_versions] section is missing."""
+        sys.path.insert(0, str(self.repo_root))
+        
+        try:
+            from version_utils import get_redis_version
+            import tempfile
+            
+            # Test that missing section raises ValueError
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.cfg', delete=False) as f:
+                f.write("[metadata]\nname = test\n")
                 temp_file = f.name
             
             try:
                 with self.assertRaises(ValueError) as context:
-                    read_versions_file(temp_file)
-                self.assertIn("Invalid value", str(context.exception))
-            finally:
-                os.unlink(temp_file)
-            
-            # Test that valid versions with dots, hyphens, and 'v' prefix work
-            with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
-                f.write("REDIS_VERSION=8.2.2\n")
-                f.write("FALKORDB_VERSION=v4.14.11\n")
-                temp_file = f.name
-            
-            try:
-                versions = read_versions_file(temp_file)
-                self.assertEqual(versions['REDIS_VERSION'], '8.2.2')
-                self.assertEqual(versions['FALKORDB_VERSION'], 'v4.14.11')
-            finally:
-                os.unlink(temp_file)
-            
-            # Test that unknown keys are silently ignored (for forward compatibility)
-            with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
-                f.write("REDIS_VERSION=8.2.2\n")
-                f.write("UNKNOWN_KEY=value\n")
-                temp_file = f.name
-            
-            try:
-                versions = read_versions_file(temp_file)
-                self.assertIn('REDIS_VERSION', versions)
-                self.assertNotIn('UNKNOWN_KEY', versions)
+                    get_redis_version(temp_file)
+                self.assertIn("[build_versions]", str(context.exception))
             finally:
                 os.unlink(temp_file)
                 
@@ -181,12 +161,12 @@ class TestVersionManagement(unittest.TestCase):
             f"VERSION_MANAGEMENT.md should exist at {doc_path}"
         )
         
-        # Verify it mentions versions.txt
+        # Verify it mentions setup.cfg
         with open(doc_path, 'r', encoding='utf-8') as f:
             content = f.read()
-            self.assertIn('versions.txt', content)
-            self.assertIn('REDIS_VERSION', content)
-            self.assertIn('FALKORDB_VERSION', content)
+            self.assertIn('setup.cfg', content)
+            self.assertIn('redis_version', content.lower())
+            self.assertIn('falkordb_version', content.lower())
 
 
 if __name__ == '__main__':

@@ -38,26 +38,13 @@ REDIS_SERVER_METADATA = {}
 # Import version utilities
 try:
     from version_utils import get_redis_version, get_falkordb_version
-    REDIS_VERSION = get_redis_version(os.path.join(BASEPATH, 'versions.txt'))
-    FALKORDB_VERSION = get_falkordb_version(os.path.join(BASEPATH, 'versions.txt'))
-except ImportError:
-    # Fallback to inline version reading if version_utils is not available
-    def read_versions_file():
-        """Read Redis and FalkorDB versions from versions.txt"""
-        versions = {}
-        versions_file = os.path.join(BASEPATH, 'versions.txt')
-        if os.path.exists(versions_file):
-            with open(versions_file, 'r', encoding='utf-8') as f:
-                for line in f:
-                    line = line.strip()
-                    if line and not line.startswith('#') and '=' in line:
-                        key, value = line.split('=', 1)
-                        versions[key.strip()] = value.strip()
-        return versions
-    
-    _versions = read_versions_file()
-    REDIS_VERSION = os.environ.get('REDIS_VERSION', _versions.get('REDIS_VERSION', '8.2.2'))
-    FALKORDB_VERSION = os.environ.get('FALKORDB_VERSION', _versions.get('FALKORDB_VERSION', 'v4.14.11'))
+    REDIS_VERSION = get_redis_version(os.path.join(BASEPATH, 'setup.cfg'))
+    FALKORDB_VERSION = get_falkordb_version(os.path.join(BASEPATH, 'setup.cfg'))
+except (ImportError, FileNotFoundError, ValueError) as e:
+    # If version_utils is not available or setup.cfg is missing/invalid, fail the build
+    logger.error(f"Failed to read versions from setup.cfg: {e}")
+    logger.error("Versions must be defined in setup.cfg [build_versions] section")
+    sys.exit(1)
 
 REDIS_URL = f'https://download.redis.io/releases/redis-{REDIS_VERSION}.tar.gz'
 

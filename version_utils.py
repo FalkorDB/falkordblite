@@ -3,100 +3,111 @@
 # Copyrights licensed under the New BSD License
 # See the accompanying LICENSE.txt file for terms.
 """
-Utility module for reading version configuration from versions.txt.
+Utility module for reading version configuration from setup.cfg.
 
 This module provides a single implementation of the version reading logic
 that is used across setup.py, build scripts, and tests to ensure consistency.
 """
 import os
-import re
+import configparser
 
 
-# Whitelist of allowed version keys for security
-ALLOWED_VERSION_KEYS = {'REDIS_VERSION', 'FALKORDB_VERSION'}
-
-
-def read_versions_file(versions_file_path=None):
+def read_versions_from_setup_cfg(setup_cfg_path=None):
     """
-    Read Redis and FalkorDB versions from versions.txt.
+    Read Redis and FalkorDB versions from setup.cfg [build_versions] section.
     
     Args:
-        versions_file_path (str, optional): Path to the versions.txt file.
-            If not provided, assumes versions.txt is in the repository root.
+        setup_cfg_path (str, optional): Path to the setup.cfg file.
+            If not provided, assumes setup.cfg is in the repository root.
     
     Returns:
         dict: Dictionary with version keys and values, e.g.,
             {'REDIS_VERSION': '8.2.2', 'FALKORDB_VERSION': 'v4.14.11'}
     
     Raises:
-        ValueError: If the file contains invalid key names or values
+        FileNotFoundError: If setup.cfg is not found
+        ValueError: If the [build_versions] section or required keys are missing
     """
+    # If no path provided, try to find it relative to this file
+    if setup_cfg_path is None:
+        # This file is in the root, so setup.cfg should be alongside it
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        setup_cfg_path = os.path.join(current_dir, 'setup.cfg')
+    
+    if not os.path.exists(setup_cfg_path):
+        raise FileNotFoundError(f"setup.cfg not found at {setup_cfg_path}")
+    
+    config = configparser.ConfigParser()
+    config.read(setup_cfg_path)
+    
+    if 'build_versions' not in config:
+        raise ValueError(
+            "Missing [build_versions] section in setup.cfg. "
+            "This section must contain 'redis_version' and 'falkordb_version' keys."
+        )
+    
+    build_versions = config['build_versions']
+    
+    # Convert to uppercase keys for consistency with environment variables
     versions = {}
     
-    # If no path provided, try to find it relative to this file
-    if versions_file_path is None:
-        # This file is in the root, so versions.txt should be alongside it
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        versions_file_path = os.path.join(current_dir, 'versions.txt')
+    if 'redis_version' in build_versions:
+        versions['REDIS_VERSION'] = build_versions['redis_version']
+    else:
+        raise ValueError("Missing 'redis_version' in [build_versions] section of setup.cfg")
     
-    if os.path.exists(versions_file_path):
-        with open(versions_file_path, 'r', encoding='utf-8') as f:
-            for line_num, line in enumerate(f, 1):
-                line = line.strip()
-                if line and not line.startswith('#') and '=' in line:
-                    key, value = line.split('=', 1)
-                    key = key.strip()
-                    value = value.strip()
-                    
-                    # Validate key is in whitelist
-                    if key not in ALLOWED_VERSION_KEYS:
-                        # Log warning but don't fail for forward compatibility
-                        continue
-                    
-                    # Validate key format (alphanumeric and underscores only)
-                    if not re.match(r'^[A-Za-z_][A-Za-z0-9_]*$', key):
-                        raise ValueError(
-                            f"Invalid key '{key}' on line {line_num} of {versions_file_path}"
-                        )
-                    
-                    # Validate value doesn't contain potentially dangerous characters
-                    # Allow: alphanumeric, dots, hyphens, and 'v' prefix for version tags
-                    if not re.match(r'^[a-zA-Z0-9.\-v]+$', value):
-                        raise ValueError(
-                            f"Invalid value '{value}' for key '{key}' on line {line_num}"
-                        )
-                    
-                    versions[key] = value
+    if 'falkordb_version' in build_versions:
+        versions['FALKORDB_VERSION'] = build_versions['falkordb_version']
+    else:
+        raise ValueError("Missing 'falkordb_version' in [build_versions] section of setup.cfg")
     
     return versions
 
 
-def get_redis_version(versions_file_path=None, default='8.2.2'):
+def get_redis_version(setup_cfg_path=None):
     """
-    Get the Redis version from versions.txt or environment variable.
+    Get the Redis version from setup.cfg or environment variable.
+    
+    Environment variable REDIS_VERSION overrides the value in setup.cfg.
     
     Args:
-        versions_file_path (str, optional): Path to the versions.txt file.
-        default (str): Default version if not found.
+        setup_cfg_path (str, optional): Path to the setup.cfg file.
     
     Returns:
         str: Redis version string.
+    
+    Raises:
+        FileNotFoundError: If setup.cfg is not found
+        ValueError: If required version keys are missing
     """
-    versions = read_versions_file(versions_file_path)
-    return os.environ.get('REDIS_VERSION', versions.get('REDIS_VERSION', default))
+    # Environment variable takes precedence
+    if 'REDIS_VERSION' in os.environ:
+        return os.environ['REDIS_VERSION']
+    
+    versions = read_versions_from_setup_cfg(setup_cfg_path)
+    return versions['REDIS_VERSION']
 
 
-def get_falkordb_version(versions_file_path=None, default='v4.14.11'):
+def get_falkordb_version(setup_cfg_path=None):
     """
-    Get the FalkorDB version from versions.txt or environment variable.
+    Get the FalkorDB version from setup.cfg or environment variable.
+    
+    Environment variable FALKORDB_VERSION overrides the value in setup.cfg.
     
     Args:
-        versions_file_path (str, optional): Path to the versions.txt file.
-        default (str): Default version if not found.
+        setup_cfg_path (str, optional): Path to the setup.cfg file.
     
     Returns:
         str: FalkorDB version string.
+    
+    Raises:
+        FileNotFoundError: If setup.cfg is not found
+        ValueError: If required version keys are missing
     """
-    versions = read_versions_file(versions_file_path)
-    return os.environ.get('FALKORDB_VERSION', versions.get('FALKORDB_VERSION', default))
+    # Environment variable takes precedence
+    if 'FALKORDB_VERSION' in os.environ:
+        return os.environ['FALKORDB_VERSION']
+    
+    versions = read_versions_from_setup_cfg(setup_cfg_path)
+    return versions['FALKORDB_VERSION']
 

@@ -1,22 +1,37 @@
 #!/usr/bin/env bash
-# Script to read versions from versions.txt and output them for GitHub Actions
+# Script to read versions from setup.cfg and output them for GitHub Actions
 
 set -e
 
 # Get the repository root directory
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-VERSIONS_FILE="${REPO_ROOT}/versions.txt"
+SETUP_CFG="${REPO_ROOT}/setup.cfg"
 
-if [ ! -f "$VERSIONS_FILE" ]; then
-    echo "Error: versions.txt not found at $VERSIONS_FILE"
+if [ ! -f "$SETUP_CFG" ]; then
+    echo "Error: setup.cfg not found at $SETUP_CFG"
     exit 1
 fi
 
-# Whitelist of allowed variable names for security
-ALLOWED_VARS=("REDIS_VERSION" "FALKORDB_VERSION")
-
-# Read versions from file
+# Read versions from [build_versions] section in setup.cfg
+IN_BUILD_VERSIONS=0
 while IFS='=' read -r key value; do
+    # Detect [build_versions] section
+    if [[ "$key" =~ ^\[build_versions\] ]]; then
+        IN_BUILD_VERSIONS=1
+        continue
+    fi
+    
+    # Exit section if we hit another section header
+    if [[ "$key" =~ ^\[.*\] ]]; then
+        IN_BUILD_VERSIONS=0
+        continue
+    fi
+    
+    # Skip if not in build_versions section
+    if [ $IN_BUILD_VERSIONS -eq 0 ]; then
+        continue
+    fi
+    
     # Skip empty lines and comments
     [[ -z "$key" || "$key" =~ ^[[:space:]]*# ]] && continue
     
@@ -26,32 +41,38 @@ while IFS='=' read -r key value; do
     value="${value#"${value%%[![:space:]]*}"}"
     value="${value%"${value##*[![:space:]]}"}"
     
-    # Validate key is in whitelist
-    if [[ ! " ${ALLOWED_VARS[@]} " =~ " ${key} " ]]; then
-        echo "Warning: Ignoring unknown variable '$key' from versions.txt"
+    # Skip if key or value is empty after trimming
+    [[ -z "$key" || -z "$value" ]] && continue
+    
+    # Convert to uppercase and add _VERSION suffix if not present
+    if [[ "$key" == "redis_version" ]]; then
+        ENV_KEY="REDIS_VERSION"
+    elif [[ "$key" == "falkordb_version" ]]; then
+        ENV_KEY="FALKORDB_VERSION"
+    else
+        echo "Warning: Ignoring unknown key '$key' from setup.cfg"
         continue
     fi
     
-    # Validate key contains only alphanumeric characters and underscores
-    if [[ ! "$key" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; then
-        echo "Error: Invalid variable name '$key' in versions.txt"
-        exit 1
-    fi
-    
-    # Validate value doesn't contain shell metacharacters for security
-    if [[ "$value" =~ [\$\`\;\\] ]]; then
-        echo "Error: Value for '$key' contains invalid characters"
-        exit 1
-    fi
-    
     # Export as environment variable
-    export "$key=$value"
+    export "$ENV_KEY=$value"
     
     # Output for GitHub Actions
     if [ -n "$GITHUB_ENV" ]; then
-        echo "$key=$value" >> "$GITHUB_ENV"
+        echo "$ENV_KEY=$value" >> "$GITHUB_ENV"
     fi
     
     # Also output to stdout for debugging
-    echo "$key=$value"
-done < "$VERSIONS_FILE"
+    echo "$ENV_KEY=$value"
+done < "$SETUP_CFG"
+
+# Verify required versions were found
+if [ -z "$REDIS_VERSION" ]; then
+    echo "Error: redis_version not found in [build_versions] section of setup.cfg"
+    exit 1
+fi
+
+if [ -z "$FALKORDB_VERSION" ]; then
+    echo "Error: falkordb_version not found in [build_versions] section of setup.cfg"
+    exit 1
+fi

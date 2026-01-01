@@ -14,23 +14,10 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 try:
     from version_utils import get_redis_version
     redis_version = get_redis_version()
-except ImportError:
-    # Fallback to inline version reading if version_utils is not available
-    def read_versions_file():
-        """Read Redis and FalkorDB versions from versions.txt"""
-        versions = {}
-        versions_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'versions.txt')
-        if os.path.exists(versions_file):
-            with open(versions_file, 'r', encoding='utf-8') as f:
-                for line in f:
-                    line = line.strip()
-                    if line and not line.startswith('#') and '=' in line:
-                        key, value = line.split('=', 1)
-                        versions[key.strip()] = value.strip()
-        return versions
-
-    _versions = read_versions_file()
-    redis_version = os.environ.get('REDIS_VERSION', _versions.get('REDIS_VERSION', '8.2.2'))
+except (ImportError, FileNotFoundError, ValueError) as e:
+    print(f"Error: Failed to read Redis version from setup.cfg: {e}", file=sys.stderr)
+    print("Versions must be defined in setup.cfg [build_versions] section", file=sys.stderr)
+    sys.exit(1)
 
 url = f'https://download.redis.io/releases/redis-{redis_version}.tar.gz'
 
