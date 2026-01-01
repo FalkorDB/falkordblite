@@ -110,6 +110,55 @@ class TestVersionManagement(unittest.TestCase):
         except ImportError:
             self.skipTest("version_utils module not available")
 
+    def test_security_validation(self):
+        """Test that version_utils validates and handles invalid input properly."""
+        sys.path.insert(0, str(self.repo_root))
+        
+        try:
+            from version_utils import read_versions_file
+            import tempfile
+            
+            # Test that invalid characters in values are rejected
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
+                f.write("REDIS_VERSION=8.2.2; rm -rf /\n")
+                temp_file = f.name
+            
+            try:
+                with self.assertRaises(ValueError) as context:
+                    read_versions_file(temp_file)
+                self.assertIn("Invalid value", str(context.exception))
+            finally:
+                os.unlink(temp_file)
+            
+            # Test that valid versions with dots, hyphens, and 'v' prefix work
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
+                f.write("REDIS_VERSION=8.2.2\n")
+                f.write("FALKORDB_VERSION=v4.14.11\n")
+                temp_file = f.name
+            
+            try:
+                versions = read_versions_file(temp_file)
+                self.assertEqual(versions['REDIS_VERSION'], '8.2.2')
+                self.assertEqual(versions['FALKORDB_VERSION'], 'v4.14.11')
+            finally:
+                os.unlink(temp_file)
+            
+            # Test that unknown keys are silently ignored (for forward compatibility)
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
+                f.write("REDIS_VERSION=8.2.2\n")
+                f.write("UNKNOWN_KEY=value\n")
+                temp_file = f.name
+            
+            try:
+                versions = read_versions_file(temp_file)
+                self.assertIn('REDIS_VERSION', versions)
+                self.assertNotIn('UNKNOWN_KEY', versions)
+            finally:
+                os.unlink(temp_file)
+                
+        except ImportError:
+            self.skipTest("version_utils module not available")
+
     def test_bash_script_exists(self):
         """Test that the bash script for reading versions exists."""
         script_path = self.repo_root / '.github' / 'scripts' / 'get_versions.sh'
