@@ -47,9 +47,12 @@ All build and CI systems will automatically use the new versions.
 To update to Redis 8.2.3 and FalkorDB v4.15.0:
 
 ```bash
-# Edit versions.txt
-echo "REDIS_VERSION=8.2.3" > versions.txt
-echo "FALKORDB_VERSION=v4.15.0" >> versions.txt
+# Edit versions.txt with your preferred editor
+vim versions.txt  # or nano, emacs, etc.
+
+# Or use sed for automated updates
+sed -i 's/REDIS_VERSION=.*/REDIS_VERSION=8.2.3/' versions.txt
+sed -i 's/FALKORDB_VERSION=.*/FALKORDB_VERSION=v4.15.0/' versions.txt
 
 # Commit the change
 git add versions.txt

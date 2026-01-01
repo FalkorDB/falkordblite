@@ -17,9 +17,11 @@ while IFS='=' read -r key value; do
     # Skip empty lines and comments
     [[ -z "$key" || "$key" =~ ^[[:space:]]*# ]] && continue
     
-    # Trim whitespace
-    key=$(echo "$key" | xargs)
-    value=$(echo "$value" | xargs)
+    # Trim whitespace using parameter expansion
+    key="${key#"${key%%[![:space:]]*}"}"
+    key="${key%"${key##*[![:space:]]}"}"
+    value="${value#"${value%%[![:space:]]*}"}"
+    value="${value%"${value##*[![:space:]]}"}"
     
     # Export as environment variable
     export "$key=$value"
