@@ -24,10 +24,10 @@ falkordblite/
 │   └── INSTRUCTIONS.md  # This file
 ├── redislite/           # Main package source code
 │   ├── __init__.py      # Package initialization and metadata
-│   ├── client.py        # Redis client wrapper (sync)
-│   ├── async_client.py  # Async Redis client wrapper (async)
-│   ├── falkordb_client.py # FalkorDB graph database client (sync)
-│   ├── async_falkordb_client.py # Async FalkorDB client (async)
+│   ├── client.py        # Synchronous Redis client wrapper
+│   ├── async_client.py  # Async Redis client wrapper
+│   ├── falkordb_client.py # Synchronous FalkorDB graph database client
+│   ├── async_falkordb_client.py # Async FalkorDB client
 │   ├── configuration.py # Redis server configuration
 │   ├── debug.py         # Debug utilities
 │   └── patch.py         # Monkey patching utilities
@@ -205,7 +205,7 @@ The build process automatically detects platform and downloads appropriate Falko
 - **Linux x86_64**: falkordb-x64.so
 - **Linux ARM64**: falkordb-arm64v8.so
 - **macOS ARM64**: falkordb-macos-arm64v8.so
-- **macOS x86_64**: Falls back to ARM64 binary (may have compatibility limitations)
+- **macOS x86_64**: Falls back to ARM64 binary (may have reduced performance; see setup.py for details)
 
 ## CI/CD Workflows
 
