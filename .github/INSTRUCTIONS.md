@@ -205,7 +205,7 @@ The build process automatically detects platform and downloads appropriate Falko
 - **Linux x86_64**: falkordb-x64.so
 - **Linux ARM64**: falkordb-arm64v8.so
 - **macOS ARM64**: falkordb-macos-arm64v8.so
-- **macOS x86_64**: Falls back to ARM64 binary (may have reduced performance; see setup.py for details)
+- **macOS x86_64**: Falls back to ARM64 binary with performance warning (native x86_64 binaries not available)
 
 ## CI/CD Workflows
 
