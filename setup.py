@@ -66,8 +66,9 @@ def download_with_retry(url, max_retries=3, backoff_factor=2, token=None):
     """
     headers = {}
     if token:
-        # GitHub accepts token in Authorization header
-        headers['Authorization'] = f'token {token}'
+        # GitHub supports both 'Bearer' (OAuth 2.0) and 'token' (classic) formats
+        # Using Bearer as it's the modern standard
+        headers['Authorization'] = f'Bearer {token}'
     
     for attempt in range(max_retries):
         try:
