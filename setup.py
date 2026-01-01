@@ -19,8 +19,10 @@ except ImportError:
 import shutil
 import sys
 import urllib.request
+import urllib.error
 import tarfile
 import tempfile
+import time
 from distutils.command.build import build
 from distutils.core import Extension
 import distutils.util
@@ -45,12 +47,68 @@ except (subprocess.CalledProcessError, FileNotFoundError):
     VERSION = REDIS_VERSION
 
 
+def download_with_retry(url, max_retries=3, backoff_factor=2, token=None):
+    """
+    Download a file from a URL with retry logic and optional authentication.
+    
+    Args:
+        url: URL to download from
+        max_retries: Maximum number of retry attempts
+        backoff_factor: Multiplier for exponential backoff between retries
+        token: Optional GitHub token for authenticated requests
+    
+    Returns:
+        File-like object from urllib.request.urlopen
+    
+    Raises:
+        urllib.error.URLError: If all retry attempts fail
+    """
+    headers = {}
+    if token:
+        # GitHub accepts token in Authorization header
+        headers['Authorization'] = f'token {token}'
+    
+    for attempt in range(max_retries):
+        try:
+            if headers:
+                req = urllib.request.Request(url, headers=headers)
+                return urllib.request.urlopen(req)
+            else:
+                return urllib.request.urlopen(url)
+        except urllib.error.HTTPError as e:
+            if e.code == 403:
+                logger.warning(f'HTTP 403 Forbidden on attempt {attempt + 1}/{max_retries} for {url}')
+                if attempt < max_retries - 1:
+                    wait_time = backoff_factor ** attempt
+                    logger.info(f'Retrying in {wait_time} seconds...')
+                    time.sleep(wait_time)
+                else:
+                    logger.error(f'Failed to download {url} after {max_retries} attempts')
+                    if 'github.com' in url:
+                        logger.error('For GitHub downloads, consider setting GITHUB_TOKEN environment variable')
+                    raise
+            else:
+                raise
+        except urllib.error.URLError as e:
+            if attempt < max_retries - 1:
+                wait_time = backoff_factor ** attempt
+                logger.warning(f'Download failed on attempt {attempt + 1}/{max_retries}: {e}')
+                logger.info(f'Retrying in {wait_time} seconds...')
+                time.sleep(wait_time)
+            else:
+                logger.error(f'Failed to download {url} after {max_retries} attempts: {e}')
+                raise
+
+
 def download_redis_submodule():
+    """Download and extract Redis source code from redis.io"""
     if pathlib.Path(REDIS_PATH).exists():
         shutil.rmtree(REDIS_PATH)
     with tempfile.TemporaryDirectory() as tempdir:
         print(f'Downloading {REDIS_URL} to temp directory {tempdir}')
-        ftpstream = urllib.request.urlopen(REDIS_URL)
+        # Redis downloads from redis.io typically don't need authentication
+        # but we add retry logic to handle transient network issues
+        ftpstream = download_with_retry(REDIS_URL)
         tf = tarfile.open(fileobj=ftpstream, mode="r|gz")
         directory = tf.next().name
 
@@ -99,11 +157,32 @@ def download_falkordb_module():
     module_path = os.path.join(BASEPATH, 'falkordb.so')
     
     print(f'Downloading FalkorDB module from {falkordb_url}')
+    
+    # Get GitHub token from environment if available
+    github_token = os.environ.get('GITHUB_TOKEN')
+    if github_token:
+        logger.info('Using GITHUB_TOKEN for authenticated download')
+    else:
+        logger.info('GITHUB_TOKEN not set, downloading without authentication')
+        logger.info('Note: Unauthenticated GitHub requests have lower rate limits')
+    
     try:
-        urllib.request.urlretrieve(falkordb_url, module_path)
+        # Download with retry logic and optional authentication
+        response = download_with_retry(falkordb_url, token=github_token)
+        with open(module_path, 'wb') as f:
+            f.write(response.read())
         print(f'FalkorDB module downloaded to {module_path}')
     except Exception as e:
         print(f'Failed to download FalkorDB module: {e}')
+        if isinstance(e, urllib.error.HTTPError) and e.code == 403:
+            print('*' * 80)
+            print('HTTP 403 Forbidden - This typically means:')
+            print('  1. GitHub API rate limit exceeded (60 requests/hour without token)')
+            print('  2. Missing or invalid authentication token')
+            print('To fix this issue:')
+            print('  - Set GITHUB_TOKEN environment variable with a valid GitHub token')
+            print('  - In CI/CD, use: GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}')
+            print('*' * 80)
         raise
 
 

@@ -71,10 +71,14 @@ jobs:
       run: pip install delocate
     
     - name: Build package
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         python setup.py build
     
     - name: Build wheel
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         python setup.py bdist_wheel
     

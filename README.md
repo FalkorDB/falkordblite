@@ -506,3 +506,34 @@ The `python setup.py build` command will:
 - Automatically copy binaries to `redislite/bin/` with proper permissions
 
 **Note:** If you encounter issues, see [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for details.
+
+### Authentication for Downloads
+
+During the build process, FalkorDBLite downloads dependencies from external sources:
+- Redis source code from `https://download.redis.io/releases/`
+- FalkorDB module binaries from GitHub releases
+
+#### GitHub Token for Rate Limits
+
+GitHub API has rate limits that may cause HTTP 403 errors:
+- **Unauthenticated requests**: 60 requests per hour
+- **Authenticated requests**: 1000 requests per hour per repository
+
+If you encounter HTTP 403 errors during build, set the `GITHUB_TOKEN` environment variable:
+
+```bash
+# For local builds
+export GITHUB_TOKEN="your_github_token_here"
+python setup.py build
+
+# For CI/CD (GitHub Actions)
+# The workflow automatically uses secrets.GITHUB_TOKEN
+```
+
+To create a GitHub personal access token:
+1. Go to GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)
+2. Click "Generate new token (classic)"
+3. Select scopes: `public_repo` (for accessing public repositories)
+4. Copy the token and use it as shown above
+
+**Note:** The build script includes automatic retry logic with exponential backoff to handle transient network issues.

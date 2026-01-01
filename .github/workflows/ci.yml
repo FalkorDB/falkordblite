@@ -57,6 +57,8 @@ jobs:
         pip install pytest pytest-cov pylint pycodestyle
     
     - name: Build package
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         python setup.py build
     
@@ -133,6 +135,8 @@ jobs:
         pip install pytest pytest-cov
     
     - name: Build package
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         python setup.py build
     
@@ -213,10 +217,14 @@ jobs:
         pip install -r requirements.txt
     
     - name: Build source distribution
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         python setup.py sdist
     
     - name: Build wheel
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         python setup.py bdist_wheel
     
