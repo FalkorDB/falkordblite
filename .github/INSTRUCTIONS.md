@@ -286,10 +286,10 @@ python -m redislite.debug
 ## Dependencies
 
 ### Runtime Dependencies (requirements.txt)
-- `redis>=4.5`: Redis Python client (includes redis.asyncio for async support)
+- `redis>=4.5`: Redis Python client (includes redis.asyncio module since 4.2.0)
 - `psutil`: Process and system utilities
 - `setuptools>38.0`: Build system
-- `falkordb>=1.2.0`: FalkorDB Python client with async support (dynamically loaded)
+- `falkordb>=1.2.0`: FalkorDB Python client (includes falkordb.asyncio module, dynamically loaded)
 
 ### Development Dependencies
 - `pytest`: Testing framework
