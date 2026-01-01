@@ -1,0 +1,8 @@
+# FalkorDB Lite Version Configuration
+# This file contains the versions of Redis and FalkorDB to be used
+# in building and testing the falkordblite package.
+# 
+# Format: KEY=VALUE (no spaces around =)
+
+REDIS_VERSION=8.2.2
+FALKORDB_VERSION=v4.14.11
