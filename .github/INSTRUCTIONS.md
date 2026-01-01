@@ -8,7 +8,9 @@ FalkorDBLite is a self-contained Python interface to the FalkorDB graph database
 - Embedded Redis server with FalkorDB module (automatically installed and managed)
 - Full FalkorDB graph database operations using Cypher queries
 - Compatible Redis key-value operations
+- **Async API support** for non-blocking operations (AsyncFalkorDB, AsyncRedis)
 - Secure default configuration (accessible only by creating user)
+- Cross-platform support (Linux x86_64/ARM64, macOS ARM64/x86_64)
 
 ## Project Structure
 
@@ -22,16 +24,21 @@ falkordblite/
 │   └── INSTRUCTIONS.md  # This file
 ├── redislite/           # Main package source code
 │   ├── __init__.py      # Package initialization and metadata
-│   ├── client.py        # Redis client wrapper
-│   ├── falkordb_client.py # FalkorDB graph database client
+│   ├── client.py        # Redis client wrapper (sync)
+│   ├── async_client.py  # Async Redis client wrapper
+│   ├── falkordb_client.py # FalkorDB graph database client (sync)
+│   ├── async_falkordb_client.py # Async FalkorDB client
 │   ├── configuration.py # Redis server configuration
 │   ├── debug.py         # Debug utilities
 │   └── patch.py         # Monkey patching utilities
 ├── tests/               # Test suite
 │   ├── test_client.py   # Redis client tests
-│   ├── test_falkordb.py # FalkorDB functionality tests
+│   ├── test_falkordb.py # FalkorDB functionality tests (sync)
+│   ├── test_async_falkordb.py # Async FalkorDB tests
 │   ├── test_configuration.py # Configuration tests
 │   └── ...
+├── examples/            # Example scripts
+│   └── async_example.py # Async API usage examples
 ├── docs/                # Documentation
 ├── build_scripts/       # Build helper scripts
 ├── src/                 # C extension sources (minimal)
@@ -97,6 +104,13 @@ The `python setup.py build` command will:
 - Manages server settings and security
 - Handles persistence and storage options
 
+### 4. Async Clients (`redislite/async_client.py`, `redislite/async_falkordb_client.py`)
+- Async/await support for non-blocking operations
+- `AsyncRedis` - Async version of Redis client using redis.asyncio
+- `AsyncFalkorDB` - Async version of FalkorDB client
+- `AsyncGraph` - Async graph operations with Cypher queries
+- Useful for web applications, concurrent workloads, and high-performance scenarios
+
 ## Testing
 
 ### Running Tests
@@ -114,15 +128,19 @@ pytest tests/ --cov=redislite --cov-report=xml --cov-report=term-missing
 # Run specific test file
 pytest tests/test_falkordb.py
 
+# Run async tests specifically
+pytest tests/test_async_falkordb.py
+
 # Run specific test
 pytest tests/test_falkordb.py::test_graph_operations
 ```
 
 ### Test Strategy
 - Unit tests for individual components
-- Integration tests for Redis and FalkorDB operations
+- Integration tests for Redis and FalkorDB operations (sync and async)
 - Configuration and patching tests
 - All tests use pytest framework
+- Async tests use asyncio.run() for execution
 - Coverage tracking with pytest-cov
 
 ### Verification Script
@@ -182,6 +200,13 @@ python -m build
 - `REDIS_VERSION`: Redis version to use (default: 8.2.2)
 - `FALKORDB_VERSION`: FalkorDB module version (default: v4.14.7)
 
+### Platform-Specific Builds
+The build process automatically detects platform and downloads appropriate FalkorDB module:
+- **Linux x86_64**: falkordb-x64.so
+- **Linux ARM64**: falkordb-arm64v8.so
+- **macOS ARM64**: falkordb-macos-arm64v8.so
+- **macOS x86_64**: Uses ARM64 binary via Rosetta 2 (performance impact)
+
 ## CI/CD Workflows
 
 ### CI Workflow (`.github/workflows/ci.yml`)
@@ -229,9 +254,16 @@ All source files should include copyright header:
 
 ### Adding New FalkorDB Features
 1. Check falkordb-py for upstream API changes
-2. Add wrapper methods in `falkordb_client.py`
+2. Add wrapper methods in `falkordb_client.py` (sync) and/or `async_falkordb_client.py` (async)
 3. Maintain compatibility with embedded Redis client
-4. Add tests in `tests/test_falkordb.py`
+4. Add tests in `tests/test_falkordb.py` (sync) and/or `tests/test_async_falkordb.py` (async)
+
+### Working with Async API
+1. Use `AsyncFalkorDB` and `AsyncRedis` for async operations
+2. All async operations require `await` keyword
+3. Use `asyncio.run()` for top-level execution
+4. See `examples/async_example.py` for usage patterns
+5. Async clients manage embedded server lifecycle same as sync clients
 
 ### Updating Redis Version
 1. Set `REDIS_VERSION` environment variable
@@ -254,10 +286,10 @@ python -m redislite.debug
 ## Dependencies
 
 ### Runtime Dependencies (requirements.txt)
-- `redis>=4.5`: Redis Python client
+- `redis>=4.5`: Redis Python client (includes redis.asyncio for async support)
 - `psutil`: Process and system utilities
 - `setuptools>38.0`: Build system
-- `falkordb>=1.2.0`: FalkorDB Python client (dynamically loaded)
+- `falkordb>=1.2.0`: FalkorDB Python client with async support (dynamically loaded)
 
 ### Development Dependencies
 - `pytest`: Testing framework
@@ -272,6 +304,15 @@ See [TROUBLESHOOTING.md](../TROUBLESHOOTING.md) for common issues:
 - Build failures
 - Module loading issues
 - Binary permissions
+
+## Dependency Management
+
+### Dependabot Configuration
+The repository uses Dependabot for automated dependency updates (`.github/dependabot.yml`):
+- **Python dependencies**: Daily checks for pip packages
+- **GitHub Actions**: Weekly checks for workflow dependencies
+
+Dependabot will automatically create PRs for dependency updates when new versions are available.
 
 ## Contributing
 
