@@ -34,9 +34,19 @@ METADATA_FILENAME = 'redislite/package_metadata.json'
 BASEPATH = os.path.dirname(os.path.abspath(__file__))
 REDIS_PATH = os.path.join(BASEPATH, 'redis.submodule')
 REDIS_SERVER_METADATA = {}
-REDIS_VERSION = os.environ.get('REDIS_VERSION', '8.2.2')
+
+# Import version utilities
+try:
+    from version_utils import get_redis_version, get_falkordb_version
+    REDIS_VERSION = get_redis_version(os.path.join(BASEPATH, 'setup.cfg'))
+    FALKORDB_VERSION = get_falkordb_version(os.path.join(BASEPATH, 'setup.cfg'))
+except (ImportError, FileNotFoundError, ValueError) as e:
+    # If version_utils is not available or setup.cfg is missing/invalid, fail the build
+    logger.error(f"Failed to read versions from setup.cfg: {e}")
+    logger.error("Versions must be defined in setup.cfg [build_versions] section")
+    sys.exit(1)
+
 REDIS_URL = f'https://download.redis.io/releases/redis-{REDIS_VERSION}.tar.gz'
-FALKORDB_VERSION = os.environ.get('FALKORDB_VERSION', 'v4.14.11')
 
 install_scripts = ''
 try:

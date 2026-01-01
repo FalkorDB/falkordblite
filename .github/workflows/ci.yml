@@ -20,12 +20,12 @@ jobs:
         python-version: ['3.12', '3.13', '3.14']
       fail-fast: false
     
-    env:
-      REDIS_VERSION: '8.2.2'
-      FALKORDB_VERSION: 'v4.14.11'
-    
     steps:
     - uses: actions/checkout@v6
+    
+    - name: Load versions from versions.txt
+      run: |
+        source .github/scripts/get_versions.sh
     
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v6
@@ -97,12 +97,12 @@ jobs:
         python-version: ['3.12', '3.13', '3.14']
       fail-fast: false
     
-    env:
-      REDIS_VERSION: '8.2.2'
-      FALKORDB_VERSION: 'v4.14.11'
-    
     steps:
     - uses: actions/checkout@v6
+    
+    - name: Load versions from versions.txt
+      run: |
+        source .github/scripts/get_versions.sh
     
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v6
@@ -180,12 +180,12 @@ jobs:
     name: Build Wheels
     runs-on: ubuntu-latest
     
-    env:
-      REDIS_VERSION: '8.2.2'
-      FALKORDB_VERSION: 'v4.14.11'
-    
     steps:
     - uses: actions/checkout@v6
+    
+    - name: Load versions from versions.txt
+      run: |
+        source .github/scripts/get_versions.sh
     
     - name: Set up Python
       uses: actions/setup-python@v6
