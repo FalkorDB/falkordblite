@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Script to read versions from versions.txt and output them for GitHub Actions
 
 set -e

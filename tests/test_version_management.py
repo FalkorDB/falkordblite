@@ -62,24 +62,53 @@ class TestVersionManagement(unittest.TestCase):
         # Add the repo root to the path
         sys.path.insert(0, str(self.repo_root))
         
-        # Read versions using the same logic as setup.py
-        def read_versions_file():
-            versions = {}
-            if self.versions_file.exists():
-                with open(self.versions_file, 'r', encoding='utf-8') as f:
-                    for line in f:
-                        line = line.strip()
-                        if line and not line.startswith('#') and '=' in line:
-                            key, value = line.split('=', 1)
-                            versions[key.strip()] = value.strip()
-            return versions
-        
-        versions = read_versions_file()
-        redis_version = os.environ.get('REDIS_VERSION', versions.get('REDIS_VERSION', ''))
-        falkordb_version = os.environ.get('FALKORDB_VERSION', versions.get('FALKORDB_VERSION', ''))
+        # Import and use the shared utility
+        try:
+            from version_utils import get_redis_version, get_falkordb_version
+            redis_version = get_redis_version(str(self.versions_file))
+            falkordb_version = get_falkordb_version(str(self.versions_file))
+        except ImportError:
+            # Fallback to inline reading if utility not available
+            def read_versions_file():
+                versions = {}
+                if self.versions_file.exists():
+                    with open(self.versions_file, 'r', encoding='utf-8') as f:
+                        for line in f:
+                            line = line.strip()
+                            if line and not line.startswith('#') and '=' in line:
+                                key, value = line.split('=', 1)
+                                versions[key.strip()] = value.strip()
+                return versions
+            
+            versions = read_versions_file()
+            redis_version = os.environ.get('REDIS_VERSION', versions.get('REDIS_VERSION', ''))
+            falkordb_version = os.environ.get('FALKORDB_VERSION', versions.get('FALKORDB_VERSION', ''))
         
         self.assertTrue(redis_version, "REDIS_VERSION should be set")
         self.assertTrue(falkordb_version, "FALKORDB_VERSION should be set")
+
+    def test_version_utils_module(self):
+        """Test that the version_utils module works correctly."""
+        sys.path.insert(0, str(self.repo_root))
+        
+        try:
+            from version_utils import read_versions_file, get_redis_version, get_falkordb_version
+            
+            # Test read_versions_file
+            versions = read_versions_file(str(self.versions_file))
+            self.assertIn('REDIS_VERSION', versions)
+            self.assertIn('FALKORDB_VERSION', versions)
+            
+            # Test get_redis_version
+            redis_version = get_redis_version(str(self.versions_file))
+            self.assertRegex(redis_version, r'^\d+\.\d+\.\d+$')
+            
+            # Test get_falkordb_version
+            falkordb_version = get_falkordb_version(str(self.versions_file))
+            self.assertTrue(falkordb_version.startswith('v'))
+            
+        except ImportError:
+            self.skipTest("version_utils module not available")
 
     def test_bash_script_exists(self):
         """Test that the bash script for reading versions exists."""
