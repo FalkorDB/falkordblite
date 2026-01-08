@@ -327,7 +327,7 @@ class InstallRedis(install):
         # Set executable permissions on FalkorDB module in module_bin only
         falkordb_path = os.path.join(module_bin, 'falkordb.so')
         if os.path.exists(falkordb_path):
-            os.chmod(falkordb_path, 0o755)
+            os.chmod(falkordb_path, 0o700)
             logger.debug('Set executable permissions on %s', falkordb_path)
 
         install_scripts = self.install_scripts
