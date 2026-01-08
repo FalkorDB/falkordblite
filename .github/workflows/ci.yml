@@ -305,12 +305,14 @@ jobs:
         test_env/bin/python -c "from redislite.falkordb_client import FalkorDB; print('✓ Import successful')"
     
     - name: Run verification script
+      working-directory: /tmp
       run: |
-        test_env/bin/python verify_install.py
+        $GITHUB_WORKSPACE/test_env/bin/python $GITHUB_WORKSPACE/verify_install.py
     
     - name: Test basic functionality
+      working-directory: /tmp
       run: |
-        test_env/bin/python -c "from redislite.falkordb_client import FalkorDB; db = FalkorDB(); g = db.select_graph('wheel_test'); result = g.query('CREATE (n:WheelTest {installed: true}) RETURN n'); print('✓ Wheel installation works correctly'); g.delete()"
+        $GITHUB_WORKSPACE/test_env/bin/python -c "from redislite.falkordb_client import FalkorDB; db = FalkorDB(); g = db.select_graph('wheel_test'); result = g.query('CREATE (n:WheelTest {installed: true}) RETURN n'); print('✓ Wheel installation works correctly'); g.delete()"
 
   test-wheel-macos:
     name: Test Wheel on macOS Python ${{ matrix.python-version }}
@@ -355,9 +357,11 @@ jobs:
         test_env/bin/python -c "from redislite.falkordb_client import FalkorDB; print('✓ Import successful')"
     
     - name: Run verification script
+      working-directory: /tmp
       run: |
-        test_env/bin/python verify_install.py
+        $GITHUB_WORKSPACE/test_env/bin/python $GITHUB_WORKSPACE/verify_install.py
     
     - name: Test basic functionality
+      working-directory: /tmp
       run: |
-        test_env/bin/python -c "from redislite.falkordb_client import FalkorDB; db = FalkorDB(); g = db.select_graph('wheel_test'); result = g.query('CREATE (n:WheelTest {installed: true}) RETURN n'); print('✓ Wheel installation works correctly'); g.delete()"
+        $GITHUB_WORKSPACE/test_env/bin/python -c "from redislite.falkordb_client import FalkorDB; db = FalkorDB(); g = db.select_graph('wheel_test'); result = g.query('CREATE (n:WheelTest {installed: true}) RETURN n'); print('✓ Wheel installation works correctly'); g.delete()"
