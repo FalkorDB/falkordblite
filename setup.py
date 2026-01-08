@@ -8,6 +8,7 @@ import json
 import logging
 import pathlib
 import subprocess
+import ssl
 
 from setuptools import setup
 from setuptools.command.install import install
@@ -25,6 +26,13 @@ from distutils.command.build import build
 from distutils.core import Extension
 import distutils.util
 from subprocess import call, check_output, CalledProcessError
+
+# Import certifi for SSL certificate handling
+try:
+    import certifi
+    HAS_CERTIFI = True
+except ImportError:
+    HAS_CERTIFI = False
 
 
 logger = logging.getLogger(__name__)
@@ -46,12 +54,25 @@ except (subprocess.CalledProcessError, FileNotFoundError):
     VERSION = REDIS_VERSION
 
 
+def get_ssl_context():
+    """Create an SSL context with proper certificate handling"""
+    if HAS_CERTIFI:
+        # Use certifi's certificate bundle
+        ssl_context = ssl.create_default_context(cafile=certifi.where())
+    else:
+        # Fall back to default context
+        ssl_context = ssl.create_default_context()
+    return ssl_context
+
+
 def download_redis_submodule():
     if pathlib.Path(REDIS_PATH).exists():
         shutil.rmtree(REDIS_PATH)
     with tempfile.TemporaryDirectory() as tempdir:
         print(f'Downloading {REDIS_URL} to temp directory {tempdir}')
-        ftpstream = urllib.request.urlopen(REDIS_URL)
+        # Create SSL context that uses system certificates
+        ssl_context = get_ssl_context()
+        ftpstream = urllib.request.urlopen(REDIS_URL, context=ssl_context)
         tf = tarfile.open(fileobj=ftpstream, mode="r|gz")
         directory = tf.next().name
 
@@ -101,7 +122,12 @@ def download_falkordb_module():
     
     print(f'Downloading FalkorDB module from {falkordb_url}')
     try:
-        urllib.request.urlretrieve(falkordb_url, module_path)
+        # Create SSL context that uses system certificates
+        ssl_context = get_ssl_context()
+        # Use urlopen with context and manually save the file
+        with urllib.request.urlopen(falkordb_url, context=ssl_context) as response:
+            with open(module_path, 'wb') as out_file:
+                out_file.write(response.read())
         print(f'FalkorDB module downloaded to {module_path}')
     except Exception as e:
         print(f'Failed to download FalkorDB module: {e}')
@@ -281,6 +307,11 @@ class InstallRedis(install):
             'running InstallRedis %s -> %s',
             self.build_scripts, self.install_scripts
         )
+
+        # Ensure install_scripts directory exists
+        if self.install_scripts and not os.path.exists(self.install_scripts):
+            os.makedirs(self.install_scripts, 0o0755)
+            logger.debug('Created install_scripts directory: %s', self.install_scripts)
 
         # Copy only standalone executables to install_scripts (bin/), not shared libraries
         # falkordb.so should only be in redislite/bin/ where @loader_path references work

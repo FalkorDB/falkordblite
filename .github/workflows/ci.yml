@@ -221,3 +221,71 @@ jobs:
       with:
         name: dist-packages
         path: dist/*
+
+  test-wheel:
+    name: Test Wheel Installation on ${{ matrix.os }}
+    needs: build-wheels
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python-version: ['3.12', '3.13']
+      fail-fast: false
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Download wheel artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: dist-packages
+        path: dist/
+    
+    - name: Install system dependencies (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential gcc make python3-dev
+    
+    - name: Install system dependencies (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        brew install gcc make libomp
+    
+    - name: Create fresh virtual environment
+      run: |
+        python -m venv test_env
+        source test_env/bin/activate
+        pip install --upgrade pip
+    
+    - name: Install wheel
+      run: |
+        source test_env/bin/activate
+        pip install dist/*.whl
+    
+    - name: Test import
+      run: |
+        source test_env/bin/activate
+        python -c "from redislite.falkordb_client import FalkorDB; print('✓ Import successful')"
+    
+    - name: Run verification script
+      run: |
+        source test_env/bin/activate
+        python verify_install.py
+    
+    - name: Test basic functionality
+      run: |
+        source test_env/bin/activate
+        python -c "
+        from redislite.falkordb_client import FalkorDB
+        db = FalkorDB()
+        g = db.select_graph('wheel_test')
+        result = g.query('CREATE (n:WheelTest {installed: true}) RETURN n')
+        print('✓ Wheel installation works correctly')
+        g.delete()
+        "
