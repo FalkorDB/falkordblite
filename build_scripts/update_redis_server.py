@@ -6,9 +6,19 @@ import shutil
 import urllib.request
 import tarfile
 import tempfile
+import sys
 
+# Add parent directory to path to import version_utils
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-redis_version = os.environ.get('REDIS_VERSION', '8.2.2')
+try:
+    from version_utils import get_redis_version
+    redis_version = get_redis_version()
+except (ImportError, FileNotFoundError, ValueError) as e:
+    print(f"Error: Failed to read Redis version from setup.cfg: {e}", file=sys.stderr)
+    print("Versions must be defined in setup.cfg [build_versions] section", file=sys.stderr)
+    sys.exit(1)
+
 url = f'https://download.redis.io/releases/redis-{redis_version}.tar.gz'
 
 
