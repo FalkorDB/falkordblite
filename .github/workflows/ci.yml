@@ -291,29 +291,29 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y build-essential gcc make python3-dev
     
-    - name: Create fresh virtual environment
+    - name: Create fresh virtual environment in /tmp
       run: |
-        python -m venv test_env
-        test_env/bin/pip install --upgrade pip
+        python -m venv /tmp/test_env
+        /tmp/test_env/bin/pip install --upgrade pip
     
     - name: Install wheel
       run: |
-        test_env/bin/pip install dist/*.whl
+        /tmp/test_env/bin/pip install $GITHUB_WORKSPACE/dist/*.whl
     
     - name: Test import
       run: |
-        test_env/bin/python -c "from redislite.falkordb_client import FalkorDB; print('✓ Import successful')"
+        /tmp/test_env/bin/python -c "from redislite.falkordb_client import FalkorDB; print('✓ Import successful')"
     
     - name: Run verification script
       run: |
         cp verify_install.py /tmp/verify_install.py
         cd /tmp
-        $GITHUB_WORKSPACE/test_env/bin/python verify_install.py
+        ./test_env/bin/python verify_install.py
     
     - name: Test basic functionality
       working-directory: /tmp
       run: |
-        $GITHUB_WORKSPACE/test_env/bin/python -c "from redislite.falkordb_client import FalkorDB; db = FalkorDB(); g = db.select_graph('wheel_test'); result = g.query('CREATE (n:WheelTest {installed: true}) RETURN n'); print('✓ Wheel installation works correctly'); g.delete()"
+        ./test_env/bin/python -c "from redislite.falkordb_client import FalkorDB; db = FalkorDB(); g = db.select_graph('wheel_test'); result = g.query('CREATE (n:WheelTest {installed: true}) RETURN n'); print('✓ Wheel installation works correctly'); g.delete()"
 
   test-wheel-macos:
     name: Test Wheel on macOS Python ${{ matrix.python-version }}
@@ -344,26 +344,26 @@ jobs:
       run: |
         brew install gcc make libomp
     
-    - name: Create fresh virtual environment
+    - name: Create fresh virtual environment in /tmp
       run: |
-        python -m venv test_env
-        test_env/bin/pip install --upgrade pip
+        python -m venv /tmp/test_env
+        /tmp/test_env/bin/pip install --upgrade pip
     
     - name: Install wheel
       run: |
-        test_env/bin/pip install dist/*.whl
+        /tmp/test_env/bin/pip install $GITHUB_WORKSPACE/dist/*.whl
     
     - name: Test import
       run: |
-        test_env/bin/python -c "from redislite.falkordb_client import FalkorDB; print('✓ Import successful')"
+        /tmp/test_env/bin/python -c "from redislite.falkordb_client import FalkorDB; print('✓ Import successful')"
     
     - name: Run verification script
       run: |
         cp verify_install.py /tmp/verify_install.py
         cd /tmp
-        $GITHUB_WORKSPACE/test_env/bin/python verify_install.py
+        ./test_env/bin/python verify_install.py
     
     - name: Test basic functionality
       working-directory: /tmp
       run: |
-        $GITHUB_WORKSPACE/test_env/bin/python -c "from redislite.falkordb_client import FalkorDB; db = FalkorDB(); g = db.select_graph('wheel_test'); result = g.query('CREATE (n:WheelTest {installed: true}) RETURN n'); print('✓ Wheel installation works correctly'); g.delete()"
+        ./test_env/bin/python -c "from redislite.falkordb_client import FalkorDB; db = FalkorDB(); g = db.select_graph('wheel_test'); result = g.query('CREATE (n:WheelTest {installed: true}) RETURN n'); print('✓ Wheel installation works correctly'); g.delete()"
