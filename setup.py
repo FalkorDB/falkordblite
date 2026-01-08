@@ -8,6 +8,7 @@ import json
 import logging
 import pathlib
 import subprocess
+import ssl
 
 from setuptools import setup
 from setuptools.command.install import install
@@ -26,6 +27,13 @@ from distutils.core import Extension
 import distutils.util
 from subprocess import call, check_output, CalledProcessError
 
+# Import certifi for SSL certificate handling
+try:
+    import certifi
+    HAS_CERTIFI = True
+except ImportError:
+    HAS_CERTIFI = False
+
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +45,8 @@ REDIS_SERVER_METADATA = {}
 REDIS_VERSION = os.environ.get('REDIS_VERSION', '8.2.2')
 REDIS_URL = f'https://download.redis.io/releases/redis-{REDIS_VERSION}.tar.gz'
 FALKORDB_VERSION = os.environ.get('FALKORDB_VERSION', 'v4.14.11')
-
+# Executables to install to virtualenv's bin/ directory (standalone CLI tools only)
+INSTALL_BIN_EXECUTABLES = ['redis-server', 'redis-cli']
 install_scripts = ''
 try:
     VERSION = check_output(['meta', 'get', 'package.version']).decode(errors='ignore')
@@ -45,12 +54,25 @@ except (subprocess.CalledProcessError, FileNotFoundError):
     VERSION = REDIS_VERSION
 
 
+def get_ssl_context():
+    """Create an SSL context with proper certificate handling"""
+    if HAS_CERTIFI:
+        # Use certifi's certificate bundle
+        ssl_context = ssl.create_default_context(cafile=certifi.where())
+    else:
+        # Fall back to default context
+        ssl_context = ssl.create_default_context()
+    return ssl_context
+
+
 def download_redis_submodule():
     if pathlib.Path(REDIS_PATH).exists():
         shutil.rmtree(REDIS_PATH)
     with tempfile.TemporaryDirectory() as tempdir:
         print(f'Downloading {REDIS_URL} to temp directory {tempdir}')
-        ftpstream = urllib.request.urlopen(REDIS_URL)
+        # Create SSL context that uses system certificates
+        ssl_context = get_ssl_context()
+        ftpstream = urllib.request.urlopen(REDIS_URL, context=ssl_context)
         tf = tarfile.open(fileobj=ftpstream, mode="r|gz")
         directory = tf.next().name
 
@@ -100,7 +122,12 @@ def download_falkordb_module():
     
     print(f'Downloading FalkorDB module from {falkordb_url}')
     try:
-        urllib.request.urlretrieve(falkordb_url, module_path)
+        # Create SSL context that uses system certificates
+        ssl_context = get_ssl_context()
+        # Use urlopen with context and manually save the file
+        with urllib.request.urlopen(falkordb_url, context=ssl_context) as response:
+            with open(module_path, 'wb') as out_file:
+                out_file.write(response.read())
         print(f'FalkorDB module downloaded to {module_path}')
     except Exception as e:
         print(f'Failed to download FalkorDB module: {e}')
@@ -280,14 +307,28 @@ class InstallRedis(install):
             'running InstallRedis %s -> %s',
             self.build_scripts, self.install_scripts
         )
-        self.copy_tree(self.build_scripts, self.install_scripts)
 
-        # Set executable permissions on FalkorDB module after installation
-        for install_dir in [module_bin, self.install_scripts]:
-            falkordb_path = os.path.join(install_dir, 'falkordb.so')
-            if os.path.exists(falkordb_path):
-                os.chmod(falkordb_path, 0o755)
-                logger.debug('Set executable permissions on %s', falkordb_path)
+        # Ensure install_scripts directory exists
+        if self.install_scripts and not os.path.exists(self.install_scripts):
+            os.makedirs(self.install_scripts, 0o0755)
+            logger.debug('Created install_scripts directory: %s', self.install_scripts)
+
+        # Copy only standalone executables to install_scripts (bin/), not shared libraries
+        # falkordb.so should only be in redislite/bin/ where @loader_path references work
+        for executable in INSTALL_BIN_EXECUTABLES:
+            src = os.path.join(self.build_scripts, executable)
+            dst = os.path.join(self.install_scripts, executable)
+            if os.path.exists(src):
+                self.copy_file(src, dst)
+                logger.debug('Copied %s -> %s', src, dst)
+            else:
+                logger.warning('Expected executable not found: %s', src)
+
+        # Set executable permissions on FalkorDB module in module_bin only
+        falkordb_path = os.path.join(module_bin, 'falkordb.so')
+        if os.path.exists(falkordb_path):
+            os.chmod(falkordb_path, 0o700)
+            logger.debug('Set executable permissions on %s', falkordb_path)
 
         install_scripts = self.install_scripts
         print('install_scripts: %s' % install_scripts)
