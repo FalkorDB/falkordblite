@@ -305,9 +305,10 @@ jobs:
         test_env/bin/python -c "from redislite.falkordb_client import FalkorDB; print('✓ Import successful')"
     
     - name: Run verification script
-      working-directory: /tmp
       run: |
-        $GITHUB_WORKSPACE/test_env/bin/python $GITHUB_WORKSPACE/verify_install.py
+        cp verify_install.py /tmp/verify_install.py
+        cd /tmp
+        $GITHUB_WORKSPACE/test_env/bin/python verify_install.py
     
     - name: Test basic functionality
       working-directory: /tmp
@@ -357,9 +358,10 @@ jobs:
         test_env/bin/python -c "from redislite.falkordb_client import FalkorDB; print('✓ Import successful')"
     
     - name: Run verification script
-      working-directory: /tmp
       run: |
-        $GITHUB_WORKSPACE/test_env/bin/python $GITHUB_WORKSPACE/verify_install.py
+        cp verify_install.py /tmp/verify_install.py
+        cd /tmp
+        $GITHUB_WORKSPACE/test_env/bin/python verify_install.py
     
     - name: Test basic functionality
       working-directory: /tmp
