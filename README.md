@@ -62,10 +62,11 @@ brew install libomp
 
 ## Getting Started
 
-FalkorDBLite provides two main interfaces:
+FalkorDBLite provides multiple interfaces:
 
 1. **FalkorDB Graph API** - A graph database interface using Cypher queries
 2. **Redis API** - Traditional Redis key-value operations (via redislite compatibility)
+3. **Async API** - Asynchronous versions of both FalkorDB and Redis interfaces for async/await usage
 
 The package includes both Redis and the FalkorDB module, automatically configured and managed.
     
@@ -263,6 +264,158 @@ products.query('CREATE (p:Product {name: "Laptop"})')
 all_graphs = db.list_graphs()
 print(all_graphs)
 ```
+
+## Async API
+
+FalkorDBLite provides async/await support for non-blocking operations. This is particularly useful for web applications, concurrent workloads, and high-performance scenarios.
+
+### Async FalkorDB Graph Operations
+
+Use `AsyncFalkorDB` and `AsyncGraph` for asynchronous graph database operations:
+
+```python
+import asyncio
+from redislite.async_falkordb_client import AsyncFalkorDB
+
+async def main():
+    # Create an async FalkorDB instance
+    db = AsyncFalkorDB('/tmp/falkordb_async.db')
+    
+    # Select a graph
+    g = db.select_graph('social')
+    
+    # Create nodes asynchronously using parameterized queries
+    await g.query(
+        'CREATE (p:Person {name: $name, age: $age}) RETURN p',
+        params={'name': 'Alice', 'age': 30}
+    )
+    await g.query(
+        'CREATE (p:Person {name: $name, age: $age}) RETURN p',
+        params={'name': 'Bob', 'age': 25}
+    )
+    
+    # Create a relationship using parameterized queries
+    await g.query(
+        '''
+        MATCH (a:Person {name: $name_a}), (b:Person {name: $name_b})
+        CREATE (a)-[r:KNOWS]->(b)
+        RETURN r
+        ''',
+        params={'name_a': 'Alice', 'name_b': 'Bob'}
+    )
+    
+    # Query the graph asynchronously
+    result = await g.query('MATCH (p:Person) RETURN p.name, p.age')
+    for row in result.result_set:
+        print(row)
+    
+    # Read-only query
+    result = await g.ro_query('MATCH (p:Person)-[r:KNOWS]->(f) RETURN p.name, f.name')
+    
+    # Clean up
+    await g.delete()
+    await db.close()
+
+# Run the async function
+asyncio.run(main())
+```
+
+### Async Redis Operations
+
+Use `AsyncRedis` for asynchronous Redis key-value operations:
+
+```python
+import asyncio
+from redislite.async_client import AsyncRedis
+
+async def main():
+    # Create an async Redis connection
+    redis_conn = AsyncRedis('/tmp/redis_async.db')
+    
+    # Async set and get
+    await redis_conn.set('key', 'value')
+    value = await redis_conn.get('key')
+    print(value)  # b'value'
+    
+    # Multiple operations concurrently
+    await asyncio.gather(
+        redis_conn.set('key1', 'value1'),
+        redis_conn.set('key2', 'value2'),
+        redis_conn.set('key3', 'value3'),
+    )
+    
+    # Get all keys
+    keys = await redis_conn.keys()
+    print(keys)
+    
+    await redis_conn.close()
+
+asyncio.run(main())
+```
+
+### Async Context Manager
+
+Both `AsyncFalkorDB` and `AsyncRedis` support async context managers for automatic cleanup:
+
+```python
+import asyncio
+from redislite.async_falkordb_client import AsyncFalkorDB
+
+async def main():
+    async with AsyncFalkorDB('/tmp/falkordb.db') as db:
+        g = db.select_graph('social')
+        result = await g.query(
+            'CREATE (n:Person {name: $name}) RETURN n',
+            params={'name': 'Alice'}
+        )
+        print(result.result_set)
+    # Connection is automatically closed
+
+asyncio.run(main())
+```
+
+### Concurrent Graph Operations
+
+The async API enables efficient concurrent operations:
+
+```python
+import asyncio
+from redislite.async_falkordb_client import AsyncFalkorDB
+
+async def create_person(graph, name, age):
+    """Create a person node asynchronously"""
+    query = 'CREATE (p:Person {name: $name, age: $age}) RETURN p'
+    return await graph.query(query, params={'name': name, 'age': age})
+
+async def main():
+    db = AsyncFalkorDB('/tmp/social.db')
+    g = db.select_graph('social')
+    
+    # Create multiple nodes concurrently
+    people = [
+        ('Alice', 30),
+        ('Bob', 25),
+        ('Carol', 28),
+        ('Dave', 35),
+    ]
+    
+    # Execute all creates concurrently
+    await asyncio.gather(
+        *[create_person(g, name, age) for name, age in people]
+    )
+    
+    # Query all people
+    result = await g.query('MATCH (p:Person) RETURN p.name, p.age ORDER BY p.name')
+    for row in result.result_set:
+        print(f"{row[0]}, age {row[1]}")
+    
+    await g.delete()
+    await db.close()
+
+asyncio.run(main())
+```
+
+For complete async API documentation including web framework integration, see [docs/ASYNC_API.md](docs/ASYNC_API.md).
 
 ## More Information
 

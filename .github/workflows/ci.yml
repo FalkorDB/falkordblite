@@ -7,6 +7,10 @@ on:
     branches: [ master, main ]
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     name: Test on Python ${{ matrix.python-version }}
@@ -18,13 +22,13 @@ jobs:
     
     env:
       REDIS_VERSION: '8.2.2'
-      FALKORDB_VERSION: 'v4.14.7'
+      FALKORDB_VERSION: 'v4.14.11'
     
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
     
@@ -76,7 +80,7 @@ jobs:
         python verify_install.py
     
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v5
       with:
         file: ./coverage.xml
         flags: unittests
@@ -95,13 +99,13 @@ jobs:
     
     env:
       REDIS_VERSION: '8.2.2'
-      FALKORDB_VERSION: 'v4.14.7'
+      FALKORDB_VERSION: 'v4.14.11'
     
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
     
@@ -149,10 +153,10 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: '3.12'
     
@@ -177,14 +181,14 @@ jobs:
     runs-on: ubuntu-latest
     
     env:
-      REDIS_VERSION: '6.2.14'
-      FALKORDB_VERSION: 'v4.14.7'
+      REDIS_VERSION: '8.2.2'
+      FALKORDB_VERSION: 'v4.14.11'
     
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: '3.12'
     
@@ -217,7 +221,7 @@ jobs:
         python setup.py bdist_wheel
     
     - name: Upload artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: dist-packages
         path: dist/*
