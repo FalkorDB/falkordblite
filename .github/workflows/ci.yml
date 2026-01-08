@@ -33,13 +33,13 @@ jobs:
         python-version: ${{ matrix.python-version }}
     
     - name: Cache Redis submodule
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: redis.submodule
         key: redis-${{ env.REDIS_VERSION }}-linux
     
     - name: Cache FalkorDB module
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: falkordb.so
         key: falkordb-${{ env.FALKORDB_VERSION }}-${{ runner.os }}-${{ runner.arch }}
@@ -110,13 +110,13 @@ jobs:
         python-version: ${{ matrix.python-version }}
     
     - name: Cache Redis submodule
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: redis.submodule
         key: redis-${{ env.REDIS_VERSION }}-macos
     
     - name: Cache FalkorDB module
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: falkordb.so
         key: falkordb-${{ env.FALKORDB_VERSION }}-${{ runner.os }}-${{ runner.arch }}
@@ -193,13 +193,13 @@ jobs:
         python-version: '3.12'
     
     - name: Cache Redis submodule
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: redis.submodule
         key: redis-${{ env.REDIS_VERSION }}-linux
     
     - name: Cache FalkorDB module
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: falkordb.so
         key: falkordb-${{ env.FALKORDB_VERSION }}-${{ runner.os }}-${{ runner.arch }}
