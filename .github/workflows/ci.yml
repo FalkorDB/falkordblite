@@ -242,13 +242,13 @@ jobs:
         python-version: ${{ matrix.python-version }}
     
     - name: Cache Redis submodule
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: redis.submodule
         key: redis-${{ env.REDIS_VERSION }}-macos
     
     - name: Cache FalkorDB module
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: falkordb.so
         key: falkordb-${{ env.FALKORDB_VERSION }}-${{ runner.os }}-${{ runner.arch }}
@@ -290,7 +290,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
     
     - name: Download wheel artifacts
-      uses: actions/download-artifact@v6
+      uses: actions/download-artifact@v7
       with:
         name: dist-packages-Linux-X64-py${{ matrix.python-version }}
         path: dist/
@@ -347,7 +347,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
     
     - name: Download wheel artifacts
-      uses: actions/download-artifact@v6
+      uses: actions/download-artifact@v7
       with:
         name: dist-packages-macOS-ARM64-py${{ matrix.python-version }}
         path: dist/
