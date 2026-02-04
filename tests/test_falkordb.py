@@ -103,7 +103,9 @@ class TestFalkorDBClient(unittest.TestCase):
             
             # Verify UDF was loaded by listing UDFs
             udf_list = db.udf_list()
-            self.assertIn(lib_name, udf_list)
+            # udf_list returns format: [['library_name', '<name>', 'functions', [<func_list>]], ...]
+            lib_names = [udf[1] for udf in udf_list if len(udf) > 1 and udf[0] == 'library_name']
+            self.assertIn(lib_name, lib_names)
             
             # Use the UDF in a query
             graph = db.select_graph('test_udf')
@@ -263,16 +265,19 @@ class TestFalkorDBClient(unittest.TestCase):
             
             # List UDFs - both should be present
             udf_list = db.udf_list()
-            self.assertIn(lib1, udf_list)
-            self.assertIn(lib2, udf_list)
+            # udf_list returns format: [['library_name', '<name>', 'functions', [<func_list>]], ...]
+            lib_names = [udf[1] for udf in udf_list if len(udf) > 1 and udf[0] == 'library_name']
+            self.assertIn(lib1, lib_names)
+            self.assertIn(lib2, lib_names)
             
             # Delete one UDF
             db.udf_delete(lib1)
             
             # Verify only lib2 remains
             udf_list = db.udf_list()
-            self.assertNotIn(lib1, udf_list)
-            self.assertIn(lib2, udf_list)
+            lib_names = [udf[1] for udf in udf_list if len(udf) > 1 and udf[0] == 'library_name']
+            self.assertNotIn(lib1, lib_names)
+            self.assertIn(lib2, lib_names)
             
             # Clean up
             db.udf_delete(lib2)
