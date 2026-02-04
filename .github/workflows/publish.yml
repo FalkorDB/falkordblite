@@ -23,24 +23,24 @@ jobs:
     
     env:
       REDIS_VERSION: '8.2.2'
-      FALKORDB_VERSION: 'v4.14.7'
+      FALKORDB_VERSION: 'v4.14.11'
     
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
     
     - name: Cache Redis submodule
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: redis.submodule
         key: redis-${{ env.REDIS_VERSION }}-${{ runner.os }}
     
     - name: Cache FalkorDB module
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: falkordb.so
         key: falkordb-${{ env.FALKORDB_VERSION }}-${{ runner.os }}-${{ runner.arch }}
@@ -93,7 +93,7 @@ jobs:
         # so there is no unrepaired wheel to remove.
         delocate-wheel -v dist/*.whl
     
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v6
       with:
         name: wheel-${{ matrix.os }}-${{ matrix.python-version }}
         path: dist/*.whl
@@ -102,10 +102,10 @@ jobs:
     name: Build source distribution
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: '3.12'
     
@@ -114,7 +114,7 @@ jobs:
         python -m pip install --upgrade pip build
         python -m build --sdist
     
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v6
       with:
         name: sdist
         path: dist/*.tar.gz
@@ -129,7 +129,7 @@ jobs:
       contents: read
     
     steps:
-    - uses: actions/download-artifact@v4
+    - uses: actions/download-artifact@v7
       with:
         pattern: "*"
         path: dist
@@ -141,7 +141,7 @@ jobs:
         attestations: true
     
     - name: Upload artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: release-packages
         path: dist/*
