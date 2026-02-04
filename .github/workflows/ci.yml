@@ -13,7 +13,7 @@ concurrency:
 
 env:
   REDIS_VERSION: '8.2.2'
-  FALKORDB_VERSION: 'v4.14.11'
+  FALKORDB_VERSION: 'v4.16.2'
 
 jobs:
   test:
