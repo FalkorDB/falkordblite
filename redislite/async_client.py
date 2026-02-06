@@ -56,7 +56,7 @@ class AsyncRedis(RedisMixin):
         """
         # Initialize the server using the RedisMixin
         super().__init__(dbfilename=dbfilename, serverconfig=serverconfig)
-        # We need to call the mixin's __init__ which will start the server
+        # The mixin's __init__ (called above) starts the embedded Redis server
         
         # Start the embedded server using sync client
         self._sync_client = SyncRedis(dbfilename=dbfilename, serverconfig=serverconfig or {})
