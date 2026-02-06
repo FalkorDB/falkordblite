@@ -31,7 +31,7 @@ def test_basic_operations():
         print("✓ Selected graph")
         
         # Create a node
-        result = g.query('CREATE (n:Test {name: "verification"}) RETURN n')
+        g.query('CREATE (n:Test {name: "verification"}) RETURN n')
         print("✓ Created test node")
         
         # Query the node
