@@ -55,6 +55,7 @@ class AsyncRedis(RedisMixin):
             **kwargs: Additional arguments passed to the async Redis client
         """
         # Initialize the server using the RedisMixin
+        super().__init__(dbfilename=dbfilename, serverconfig=serverconfig)
         # We need to call the mixin's __init__ which will start the server
         
         # Start the embedded server using sync client
