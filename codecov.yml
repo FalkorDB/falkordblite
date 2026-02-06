@@ -11,12 +11,16 @@ coverage:
     project:
       default:
         target: auto
+        # Low threshold to avoid breaking existing CI
+        # Adjust upward once baseline coverage is established
         threshold: 0.5%
         if_ci_failed: error
 
     patch:
       default:
         target: auto
+        # Low threshold initially to not block existing PRs
+        # Consider increasing to 50-80% for new code coverage
         threshold: 0.5%
         if_ci_failed: error
 
