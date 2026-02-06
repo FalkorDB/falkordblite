@@ -55,6 +55,13 @@ jobs:
       if: runner.os == 'macOS'
       run: |
         brew install gcc make libomp
+        # Set architecture flags to build only for the current architecture
+        ARCH=$(uname -m)
+        echo "ARCHFLAGS=-arch $ARCH" >> $GITHUB_ENV
+        echo "CFLAGS=-arch $ARCH" >> $GITHUB_ENV
+        echo "CXXFLAGS=-arch $ARCH" >> $GITHUB_ENV
+        echo "LDFLAGS=-arch $ARCH" >> $GITHUB_ENV
+        echo "Building for architecture: $ARCH"
     
     - name: Install Python dependencies
       run: |
@@ -88,10 +95,18 @@ jobs:
       if: runner.os == 'macOS'
       run: |
         # delocate-wheel modifies wheels in place to bundle dependencies.
-        # This is similar to auditwheel on Linux but for macOS.
-        # Unlike auditwheel, we do not remove the original wheel here because delocate modifies the wheel in place,
-        # so there is no unrepaired wheel to remove.
+        # Binaries have been thinned to single architecture in setup.py before building the wheel.
+        
+        # First, list dependencies to see what's being bundled
+        echo "Checking wheel dependencies before delocate:"
+        delocate-listdeps dist/*.whl || true
+        
+        # Delocate the wheel - bundle dependencies
+        # Since binaries are single-arch, delocate should not add dual architecture tags
         delocate-wheel -v dist/*.whl
+        
+        echo "Wheel files after delocate:"
+        ls -la dist/*.whl
     
     - uses: actions/upload-artifact@v6
       with:
