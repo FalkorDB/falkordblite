@@ -145,6 +145,14 @@ jobs:
     - name: Run verification script
       run: |
         python verify_install.py
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v5
+      with:
+        files: ./coverage.xml
+        flags: unittests-macos
+        name: codecov-macos
+        fail_ci_if_error: false
 
   lint:
     name: Code Quality Checks
