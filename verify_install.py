@@ -32,7 +32,11 @@ def test_basic_operations():
         
         # Create a node
         result = g.query('CREATE (n:Test {name: "verification"}) RETURN n')
-        print("✓ Created test node")
+        if result and result.result_set and len(result.result_set) > 0:
+            print("✓ Created test node")
+        else:
+            print("✗ Failed to create test node")
+            return False
         
         # Query the node
         result = g.query('MATCH (n:Test) RETURN n.name')
