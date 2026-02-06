@@ -149,7 +149,8 @@ class RedisMixin(object):
                         self.pidfile
                 ):   # pragma: no cover
                     # noinspection PyTypeChecker
-                    pid = int(open(self.pidfile).read())
+                    with open(self.pidfile) as f:
+                        pid = int(f.read())
                     try:
                         process = psutil.Process(pid)
                         if process.is_running():
