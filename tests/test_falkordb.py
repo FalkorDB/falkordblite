@@ -7,6 +7,7 @@ Tests for FalkorDB client functionality.
 import os
 import tempfile
 import unittest
+import shutil
 from redislite.falkordb_client import FalkorDB
 
 
@@ -26,7 +27,6 @@ class TestFalkorDBClient(unittest.TestCase):
         finally:
             # Cleanup
             if os.path.exists(temp_dir):
-                import shutil
                 shutil.rmtree(temp_dir)
 
     def test_select_graph(self):
@@ -43,7 +43,6 @@ class TestFalkorDBClient(unittest.TestCase):
         finally:
             # Cleanup
             if os.path.exists(temp_dir):
-                import shutil
                 shutil.rmtree(temp_dir)
 
     def test_simple_query(self):
@@ -127,7 +126,6 @@ class TestFalkorDBClient(unittest.TestCase):
         finally:
             # Cleanup
             if os.path.exists(temp_dir):
-                import shutil
                 shutil.rmtree(temp_dir)
 
     def test_udf_multiple_functions(self):
@@ -186,7 +184,6 @@ class TestFalkorDBClient(unittest.TestCase):
         finally:
             # Cleanup
             if os.path.exists(temp_dir):
-                import shutil
                 shutil.rmtree(temp_dir)
 
     def test_udf_with_graph_query(self):
