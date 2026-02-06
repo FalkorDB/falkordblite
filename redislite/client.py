@@ -10,7 +10,9 @@ access and will shutdown and clean up the redis-server when deleted.  Otherwise
 they are functionally identical to the :class:`redis.Redis()` and
 :class:`redis.StrictRedis()` classes.
 """
+import asyncio
 import atexit
+import inspect
 import json
 import logging
 import os
@@ -109,7 +111,13 @@ class RedisMixin(object):
                     if getattr(self, '_async_managed', False):
                         logger.debug('Skipping shutdown for async-managed client')
                         return  # Let async wrapper handle shutdown
-                    self.shutdown(save=True, now=True, force=True)
+                    # Check if shutdown is a coroutine function to avoid async/sync confusion
+                    if hasattr(self, 'shutdown') and inspect.iscoroutinefunction(self.shutdown):
+                        # If it's async, use asyncio.run to properly await it
+                        asyncio.run(self.shutdown(save=True, now=True, force=True))
+                    else:
+                        # Use the normal shutdown method
+                        self.shutdown(save=True, now=True, force=True)
                     try:  # pragma: no cover
                         process = psutil.Process(pid)
                     except psutil.NoSuchProcess:  # pragma: no cover
