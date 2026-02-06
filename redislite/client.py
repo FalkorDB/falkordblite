@@ -11,6 +11,7 @@ they are functionally identical to the :class:`redis.Redis()` and
 :class:`redis.StrictRedis()` classes.
 """
 import atexit
+import inspect
 import json
 import logging
 import os
@@ -109,8 +110,13 @@ class RedisMixin(object):
                     if getattr(self, '_async_managed', False):
                         logger.debug('Skipping shutdown for async-managed client')
                         return  # Let async wrapper handle shutdown
-                    # Use execute_command to avoid async/sync confusion
-                    self.execute_command('SHUTDOWN', 'SAVE', 'NOW', 'FORCE')
+                    # Check if shutdown is a coroutine function to avoid async/sync confusion
+                    if hasattr(self, 'shutdown') and inspect.iscoroutinefunction(self.shutdown):
+                        # If it's async, use execute_command which is always synchronous
+                        self.execute_command('SHUTDOWN', 'SAVE', 'NOW', 'FORCE')
+                    else:
+                        # Use the normal shutdown method
+                        self.shutdown(save=True, now=True, force=True)
                     try:  # pragma: no cover
                         process = psutil.Process(pid)
                     except psutil.NoSuchProcess:  # pragma: no cover
