@@ -31,8 +31,12 @@ def test_basic_operations():
         print("✓ Selected graph")
         
         # Create a node
-        g.query('CREATE (n:Test {name: "verification"}) RETURN n')
-        print("✓ Created test node")
+        result = g.query('CREATE (n:Test {name: "verification"}) RETURN n')
+        if result and result.result_set and len(result.result_set) > 0:
+            print("✓ Created test node")
+        else:
+            print("✗ Failed to create test node")
+            return False
         
         # Query the node
         result = g.query('MATCH (n:Test) RETURN n.name')
