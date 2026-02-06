@@ -10,6 +10,7 @@ access and will shutdown and clean up the redis-server when deleted.  Otherwise
 they are functionally identical to the :class:`redis.Redis()` and
 :class:`redis.StrictRedis()` classes.
 """
+import asyncio
 import atexit
 import inspect
 import json
@@ -112,8 +113,8 @@ class RedisMixin(object):
                         return  # Let async wrapper handle shutdown
                     # Check if shutdown is a coroutine function to avoid async/sync confusion
                     if hasattr(self, 'shutdown') and inspect.iscoroutinefunction(self.shutdown):
-                        # If it's async, use execute_command which is always synchronous
-                        self.execute_command('SHUTDOWN', 'SAVE', 'NOW', 'FORCE')
+                        # If it's async, use asyncio.run to properly await it
+                        asyncio.run(self.shutdown(save=True, now=True, force=True))
                     else:
                         # Use the normal shutdown method
                         self.shutdown(save=True, now=True, force=True)
