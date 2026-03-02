@@ -228,7 +228,7 @@ jobs:
         python setup.py bdist_wheel
     
     - name: Upload artifacts
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
         name: dist-packages-Linux-X64-py${{ matrix.python-version }}
         path: dist/*
@@ -273,7 +273,7 @@ jobs:
         python setup.py bdist_wheel
     
     - name: Upload artifacts
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
         name: dist-packages-macOS-ARM64-py${{ matrix.python-version }}
         path: dist/*
