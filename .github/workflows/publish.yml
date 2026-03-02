@@ -18,7 +18,7 @@ jobs:
       contents: read
     strategy:
       matrix:
-        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest]  # macos-latest is ARM64, x86_64 Macs can use Rosetta 2
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest]  # macos-latest is ARM64 (Apple Silicon)
         python-version: ['3.12', '3.13', '3.14']
     
     env:
