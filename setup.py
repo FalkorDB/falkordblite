@@ -50,7 +50,7 @@ INSTALL_BIN_EXECUTABLES = ['redis-server', 'redis-cli']
 install_scripts = ''
 try:
     VERSION = check_output(['meta', 'get', 'package.version']).decode(errors='ignore')
-except (subprocess.CalledProcessError, FileNotFoundError):
+except (subprocess.CalledProcessError, FileNotFoundError, PermissionError):
     VERSION = REDIS_VERSION
 
 
