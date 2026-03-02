@@ -298,7 +298,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
     
     - name: Download wheel artifacts
-      uses: actions/download-artifact@v7
+      uses: actions/download-artifact@v8
       with:
         name: dist-packages-Linux-X64-py${{ matrix.python-version }}
         path: dist/
@@ -355,7 +355,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
     
     - name: Download wheel artifacts
-      uses: actions/download-artifact@v7
+      uses: actions/download-artifact@v8
       with:
         name: dist-packages-macOS-ARM64-py${{ matrix.python-version }}
         path: dist/
