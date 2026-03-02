@@ -18,7 +18,7 @@ jobs:
       contents: read
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]  # macos-latest is ARM64, x86_64 Macs can use Rosetta 2
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest]  # macos-latest is ARM64 (Apple Silicon)
         python-version: ['3.12', '3.13', '3.14']
     
     env:
@@ -37,7 +37,7 @@ jobs:
       uses: actions/cache@v5
       with:
         path: redis.submodule
-        key: redis-${{ env.REDIS_VERSION }}-${{ runner.os }}
+        key: redis-${{ env.REDIS_VERSION }}-${{ runner.os }}-${{ runner.arch }}
     
     - name: Cache FalkorDB module
       uses: actions/cache@v5
@@ -93,7 +93,7 @@ jobs:
         # so there is no unrepaired wheel to remove.
         delocate-wheel -v dist/*.whl
     
-    - uses: actions/upload-artifact@v6
+    - uses: actions/upload-artifact@v7
       with:
         name: wheel-${{ matrix.os }}-${{ matrix.python-version }}
         path: dist/*.whl
@@ -114,7 +114,7 @@ jobs:
         python -m pip install --upgrade pip build
         python -m build --sdist
     
-    - uses: actions/upload-artifact@v6
+    - uses: actions/upload-artifact@v7
       with:
         name: sdist
         path: dist/*.tar.gz
@@ -129,7 +129,7 @@ jobs:
       contents: read
     
     steps:
-    - uses: actions/download-artifact@v7
+    - uses: actions/download-artifact@v8
       with:
         pattern: "*"
         path: dist
@@ -141,7 +141,7 @@ jobs:
         attestations: true
     
     - name: Upload artifacts
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
         name: release-packages
         path: dist/*
