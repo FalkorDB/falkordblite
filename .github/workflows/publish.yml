@@ -18,7 +18,7 @@ jobs:
       contents: read
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]  # macos-latest is ARM64, x86_64 Macs can use Rosetta 2
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest]  # macos-latest is ARM64, x86_64 Macs can use Rosetta 2
         python-version: ['3.12', '3.13', '3.14']
     
     env:
@@ -37,7 +37,7 @@ jobs:
       uses: actions/cache@v5
       with:
         path: redis.submodule
-        key: redis-${{ env.REDIS_VERSION }}-${{ runner.os }}
+        key: redis-${{ env.REDIS_VERSION }}-${{ runner.os }}-${{ runner.arch }}
     
     - name: Cache FalkorDB module
       uses: actions/cache@v5
