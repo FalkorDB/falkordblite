@@ -11,10 +11,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
-env:
-  REDIS_VERSION: '8.6.2'
-  FALKORDB_VERSION: 'v4.18.3'
-
 jobs:
   test:
     name: Test on Python ${{ matrix.python-version }}
@@ -33,6 +29,9 @@ jobs:
       uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
       with:
         python-version: ${{ matrix.python-version }}
+    
+    - name: Load versions
+      run: cat versions.cfg >> $GITHUB_ENV
     
     - name: Cache Redis submodule
       uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
@@ -106,6 +105,9 @@ jobs:
       uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
       with:
         python-version: ${{ matrix.python-version }}
+    
+    - name: Load versions
+      run: cat versions.cfg >> $GITHUB_ENV
     
     - name: Cache Redis submodule
       uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
@@ -198,6 +200,9 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     
+    - name: Load versions
+      run: cat versions.cfg >> $GITHUB_ENV
+    
     - name: Cache Redis submodule
       uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
       with:
@@ -249,6 +254,9 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     
+    - name: Load versions
+      run: cat versions.cfg >> $GITHUB_ENV
+    
     - name: Cache Redis submodule
       uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
       with:
@@ -299,6 +307,9 @@ jobs:
       uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
       with:
         python-version: ${{ matrix.python-version }}
+    
+    - name: Load versions
+      run: cat versions.cfg >> $GITHUB_ENV
     
     - name: Cache Redis submodule
       uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
