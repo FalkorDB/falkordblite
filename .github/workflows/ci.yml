@@ -12,7 +12,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  REDIS_VERSION: '8.2.3'
+  REDIS_VERSION: '8.6.2'
   FALKORDB_VERSION: 'v4.18.3'
 
 jobs:

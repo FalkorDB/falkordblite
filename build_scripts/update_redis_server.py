@@ -8,7 +8,7 @@ import tarfile
 import tempfile
 
 
-redis_version = os.environ.get('REDIS_VERSION', '8.2.3')
+redis_version = os.environ.get('REDIS_VERSION', '8.6.2')
 url = f'https://github.com/redis/redis/archive/refs/tags/{redis_version}.tar.gz'
 
 

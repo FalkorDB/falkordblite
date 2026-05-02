@@ -42,7 +42,7 @@ METADATA_FILENAME = 'redislite/package_metadata.json'
 BASEPATH = os.path.dirname(os.path.abspath(__file__))
 REDIS_PATH = os.path.join(BASEPATH, 'redis.submodule')
 REDIS_SERVER_METADATA = {}
-REDIS_VERSION = os.environ.get('REDIS_VERSION', '8.2.3')
+REDIS_VERSION = os.environ.get('REDIS_VERSION', '8.6.2')
 REDIS_URL = f'https://github.com/redis/redis/archive/refs/tags/{REDIS_VERSION}.tar.gz'
 FALKORDB_VERSION = os.environ.get('FALKORDB_VERSION', 'v4.18.3')
 # Executables to install to virtualenv's bin/ directory (standalone CLI tools only)
