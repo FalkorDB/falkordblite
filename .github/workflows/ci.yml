@@ -27,21 +27,21 @@ jobs:
       fail-fast: false
     
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
     
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
       with:
         python-version: ${{ matrix.python-version }}
     
     - name: Cache Redis submodule
-      uses: actions/cache@v5
+      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
       with:
         path: redis.submodule
         key: redis-${{ env.REDIS_VERSION }}-linux
     
     - name: Cache FalkorDB module
-      uses: actions/cache@v5
+      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
       with:
         path: falkordb.so
         key: falkordb-${{ env.FALKORDB_VERSION }}-${{ runner.os }}-${{ runner.arch }}
@@ -82,7 +82,7 @@ jobs:
         python verify_install.py
     
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v5
+      uses: codecov/codecov-action@75cd11691c0faa626561e295848008c8a7dddffe # v5
       with:
         files: ./coverage.xml
         flags: unittests
@@ -100,21 +100,21 @@ jobs:
       fail-fast: false
     
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
     
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
       with:
         python-version: ${{ matrix.python-version }}
     
     - name: Cache Redis submodule
-      uses: actions/cache@v5
+      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
       with:
         path: redis.submodule
         key: redis-${{ env.REDIS_VERSION }}-macos
     
     - name: Cache FalkorDB module
-      uses: actions/cache@v5
+      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
       with:
         path: falkordb.so
         key: falkordb-${{ env.FALKORDB_VERSION }}-${{ runner.os }}-${{ runner.arch }}
@@ -147,7 +147,7 @@ jobs:
         python verify_install.py
     
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v5
+      uses: codecov/codecov-action@75cd11691c0faa626561e295848008c8a7dddffe # v5
       with:
         files: ./coverage.xml
         flags: unittests-macos
@@ -159,10 +159,10 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
     
     - name: Set up Python
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
       with:
         python-version: '3.12'
     
@@ -191,21 +191,21 @@ jobs:
       fail-fast: false
     
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
     
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
       with:
         python-version: ${{ matrix.python-version }}
     
     - name: Cache Redis submodule
-      uses: actions/cache@v5
+      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
       with:
         path: redis.submodule
         key: redis-${{ env.REDIS_VERSION }}-linux-x64
     
     - name: Cache FalkorDB module
-      uses: actions/cache@v5
+      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
       with:
         path: falkordb.so
         key: falkordb-${{ env.FALKORDB_VERSION }}-${{ runner.os }}-${{ runner.arch }}
@@ -228,7 +228,7 @@ jobs:
         python setup.py bdist_wheel
     
     - name: Upload artifacts
-      uses: actions/upload-artifact@v7
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
       with:
         name: dist-packages-Linux-X64-py${{ matrix.python-version }}
         path: dist/*
@@ -242,21 +242,21 @@ jobs:
       fail-fast: false
     
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
     
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
       with:
         python-version: ${{ matrix.python-version }}
     
     - name: Cache Redis submodule
-      uses: actions/cache@v5
+      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
       with:
         path: redis.submodule
         key: redis-${{ env.REDIS_VERSION }}-linux-arm64
     
     - name: Cache FalkorDB module
-      uses: actions/cache@v5
+      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
       with:
         path: falkordb.so
         key: falkordb-${{ env.FALKORDB_VERSION }}-${{ runner.os }}-${{ runner.arch }}
@@ -279,7 +279,7 @@ jobs:
         python setup.py bdist_wheel
     
     - name: Upload artifacts
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
       with:
         name: dist-packages-Linux-ARM64-py${{ matrix.python-version }}
         path: dist/*
@@ -293,21 +293,21 @@ jobs:
       fail-fast: false
     
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
     
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
       with:
         python-version: ${{ matrix.python-version }}
     
     - name: Cache Redis submodule
-      uses: actions/cache@v5
+      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
       with:
         path: redis.submodule
         key: redis-${{ env.REDIS_VERSION }}-macos
     
     - name: Cache FalkorDB module
-      uses: actions/cache@v5
+      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
       with:
         path: falkordb.so
         key: falkordb-${{ env.FALKORDB_VERSION }}-${{ runner.os }}-${{ runner.arch }}
@@ -324,7 +324,7 @@ jobs:
         python setup.py bdist_wheel
     
     - name: Upload artifacts
-      uses: actions/upload-artifact@v7
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
       with:
         name: dist-packages-macOS-ARM64-py${{ matrix.python-version }}
         path: dist/*
@@ -341,15 +341,15 @@ jobs:
       fail-fast: false
     
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
     
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
       with:
         python-version: ${{ matrix.python-version }}
     
     - name: Download wheel artifacts
-      uses: actions/download-artifact@v8
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
       with:
         name: dist-packages-Linux-X64-py${{ matrix.python-version }}
         path: dist/
@@ -398,15 +398,15 @@ jobs:
       fail-fast: false
     
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
     
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
       with:
         python-version: ${{ matrix.python-version }}
     
     - name: Download wheel artifacts
-      uses: actions/download-artifact@v7
+      uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
       with:
         name: dist-packages-Linux-ARM64-py${{ matrix.python-version }}
         path: dist/
@@ -455,15 +455,15 @@ jobs:
       fail-fast: false
     
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
     
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
       with:
         python-version: ${{ matrix.python-version }}
     
     - name: Download wheel artifacts
-      uses: actions/download-artifact@v8
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
       with:
         name: dist-packages-macOS-ARM64-py${{ matrix.python-version }}
         path: dist/
