@@ -11,10 +11,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
-env:
-  REDIS_VERSION: '8.2.3'
-  FALKORDB_VERSION: 'v4.16.2'
-
 jobs:
   test:
     name: Test on Python ${{ matrix.python-version }}
@@ -36,11 +32,14 @@ jobs:
         cache: pip
         cache-dependency-path: requirements.txt
     
+    - name: Load versions
+      run: cat versions.cfg >> $GITHUB_ENV
+    
     - name: Cache Redis submodule
       uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
       with:
         path: redis.submodule
-        key: redis-${{ env.REDIS_VERSION }}-linux
+        key: redis-${{ env.REDIS_VERSION }}-linux-x64
     
     - name: Cache FalkorDB module
       uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
@@ -110,6 +109,9 @@ jobs:
         python-version: ${{ matrix.python-version }}
         cache: pip
         cache-dependency-path: requirements.txt
+    
+    - name: Load versions
+      run: cat versions.cfg >> $GITHUB_ENV
     
     - name: Cache Redis submodule
       uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
@@ -206,6 +208,9 @@ jobs:
         cache: pip
         cache-dependency-path: requirements.txt
     
+    - name: Load versions
+      run: cat versions.cfg >> $GITHUB_ENV
+    
     - name: Cache Redis submodule
       uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
       with:
@@ -259,6 +264,9 @@ jobs:
         cache: pip
         cache-dependency-path: requirements.txt
     
+    - name: Load versions
+      run: cat versions.cfg >> $GITHUB_ENV
+    
     - name: Cache Redis submodule
       uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
       with:
@@ -311,6 +319,9 @@ jobs:
         python-version: ${{ matrix.python-version }}
         cache: pip
         cache-dependency-path: requirements.txt
+    
+    - name: Load versions
+      run: cat versions.cfg >> $GITHUB_ENV
     
     - name: Cache Redis submodule
       uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
