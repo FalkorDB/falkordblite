@@ -1,12 +1,16 @@
 API
 APIs
 Async
+AsyncFalkorDB
+AsyncGraph
+AsyncRedis
 CLI
 Codecov
 Cypher
 Debian
 Dockerfiles
 EOL
+FastAPI
 FalkorDB
 FalkorDBLite
 Fedora
@@ -28,6 +32,7 @@ TODO
 Taskset
 Ubuntu
 XCode
+aiohttp
 alice
 async
 backend
@@ -44,6 +49,7 @@ changelog
 changetype
 codecov
 commandline
+coroutines
 db
 deserialization
 deserialized

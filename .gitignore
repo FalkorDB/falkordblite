@@ -83,6 +83,7 @@ __pycache__/
 *.py[cod]
 .idea/
 redislite/package_metadata.json
+redislite/bin
 
 # Pycharm venv
 /venv
