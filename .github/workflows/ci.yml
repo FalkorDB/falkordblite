@@ -37,7 +37,7 @@ jobs:
       uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
       with:
         path: redis.submodule
-        key: redis-${{ env.REDIS_VERSION }}-linux
+        key: redis-${{ env.REDIS_VERSION }}-linux-x64
     
     - name: Cache FalkorDB module
       uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
