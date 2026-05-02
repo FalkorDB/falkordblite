@@ -37,14 +37,32 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+
+def _read_versions_cfg():
+    """Read KEY=VALUE pairs from versions.cfg at the repo root."""
+    cfg_path = pathlib.Path(__file__).parent / 'versions.cfg'
+    versions = {}
+    try:
+        for line in cfg_path.read_text().splitlines():
+            line = line.strip()
+            if line and not line.startswith('#') and '=' in line:
+                key, _, value = line.partition('=')
+                versions[key.strip()] = value.strip()
+    except FileNotFoundError:
+        pass
+    return versions
+
+
+_VERSIONS = _read_versions_cfg()
+
 UNSUPPORTED_PLATFORMS = ['win32', 'win64']
 METADATA_FILENAME = 'redislite/package_metadata.json'
 BASEPATH = os.path.dirname(os.path.abspath(__file__))
 REDIS_PATH = os.path.join(BASEPATH, 'redis.submodule')
 REDIS_SERVER_METADATA = {}
-REDIS_VERSION = os.environ.get('REDIS_VERSION', '8.2.3')
+REDIS_VERSION = os.environ.get('REDIS_VERSION', _VERSIONS.get('REDIS_VERSION', '8.6.2'))
 REDIS_URL = f'https://github.com/redis/redis/archive/refs/tags/{REDIS_VERSION}.tar.gz'
-FALKORDB_VERSION = os.environ.get('FALKORDB_VERSION', 'v4.16.2')
+FALKORDB_VERSION = os.environ.get('FALKORDB_VERSION', _VERSIONS.get('FALKORDB_VERSION', 'v4.18.3'))
 # Executables to install to virtualenv's bin/ directory (standalone CLI tools only)
 INSTALL_BIN_EXECUTABLES = ['redis-server', 'redis-cli']
 install_scripts = ''
