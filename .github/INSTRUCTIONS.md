@@ -82,7 +82,7 @@ pip install -e .
 
 The `python setup.py build` command will:
 1. Download and compile Redis from source (version 8.2.3)
-2. Download the FalkorDB module (version v4.14.7)
+2. Download the FalkorDB module (version v4.18.3)
 3. Copy binaries to `redislite/bin/` with proper permissions
 
 ## Key Components
@@ -198,7 +198,7 @@ python -m build
 
 ### Environment Variables
 - `REDIS_VERSION`: Redis version to use (default: 8.2.3)
-- `FALKORDB_VERSION`: FalkorDB module version (default: v4.14.7)
+- `FALKORDB_VERSION`: FalkorDB module version (default: v4.18.3)
 
 ### Platform-Specific Builds
 The build process automatically detects platform and downloads appropriate FalkorDB module:
