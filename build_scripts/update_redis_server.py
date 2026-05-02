@@ -6,20 +6,26 @@ import shutil
 import urllib.request
 import tarfile
 import tempfile
-import sys
 
-# Add parent directory to path to import version_utils
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-try:
-    from version_utils import get_redis_version
-    redis_version = get_redis_version()
-except (ImportError, FileNotFoundError, ValueError) as e:
-    print(f"Error: Failed to read Redis version from setup.cfg: {e}", file=sys.stderr)
-    print("Versions must be defined in setup.cfg [build_versions] section", file=sys.stderr)
-    sys.exit(1)
+def _read_versions_cfg():
+    """Read KEY=VALUE pairs from versions.cfg at the repo root."""
+    cfg_path = pathlib.Path(__file__).parent.parent / 'versions.cfg'
+    versions = {}
+    try:
+        for line in cfg_path.read_text().splitlines():
+            line = line.strip()
+            if line and not line.startswith('#') and '=' in line:
+                key, _, value = line.partition('=')
+                versions[key.strip()] = value.strip()
+    except FileNotFoundError:
+        pass
+    return versions
 
-url = f'https://download.redis.io/releases/redis-{redis_version}.tar.gz'
+
+_VERSIONS = _read_versions_cfg()
+redis_version = os.environ.get('REDIS_VERSION', _VERSIONS.get('REDIS_VERSION', '8.6.2'))
+url = f'https://github.com/redis/redis/archive/refs/tags/{redis_version}.tar.gz'
 
 
 if __name__ == "__main__":

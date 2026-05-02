@@ -54,8 +54,12 @@ class AsyncRedis(RedisMixin):
             serverconfig: Additional Redis server configuration
             **kwargs: Additional arguments passed to the async Redis client
         """
-        # Initialize the server using the RedisMixin
-        # We need to call the mixin's __init__ which will start the server
+        # NOTE: We intentionally do NOT call super().__init__() here.
+        # AsyncRedis inherits from RedisMixin for API compatibility and access
+        # to methods like _cleanup() and _connection_count(), but delegates all
+        # actual server initialization to the SyncRedis instance below.
+        # Calling super().__init__() would attempt to start a Redis server,
+        # which would conflict with the SyncRedis initialization.
         
         # Start the embedded server using sync client
         self._sync_client = SyncRedis(dbfilename=dbfilename, serverconfig=serverconfig or {})

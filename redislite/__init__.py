@@ -88,8 +88,9 @@ if os.path.exists(_metadata_file):  # pragma: no cover
         if __git_origin__.endswith('.git'):  # pragma: no cover
             __git_base_url__ = __git_origin__[:-4].strip('/')
         __source_url__ = __git_base_url__ + '/tree/' + __git_hash__
-        __redis_executable__ = str(_package_metadata['redis_bin'])
-        __redis_server_info__ = _package_metadata['redis_server']
+        # Don't use redis_bin from metadata as it's an absolute build-time path
+        # __redis_executable__ = str(_package_metadata['redis_bin'])
+        __redis_server_info__ = _package_metadata.get('redis_server', {})
         __redis_server_version__ = __redis_server_info__.get('v', str(''))
 
 # Auto-copy binaries from build directory for editable installs
