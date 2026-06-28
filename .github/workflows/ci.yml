@@ -34,13 +34,13 @@ jobs:
       run: cat versions.cfg >> $GITHUB_ENV
     
     - name: Cache Redis submodule
-      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v5
       with:
         path: redis.submodule
         key: redis-${{ env.REDIS_VERSION }}-linux-x64
     
     - name: Cache FalkorDB module
-      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v5
       with:
         path: falkordb.so
         key: falkordb-${{ env.FALKORDB_VERSION }}-${{ runner.os }}-${{ runner.arch }}
@@ -111,13 +111,13 @@ jobs:
       run: cat versions.cfg >> $GITHUB_ENV
     
     - name: Cache Redis submodule
-      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v5
       with:
         path: redis.submodule
         key: redis-${{ env.REDIS_VERSION }}-macos
     
     - name: Cache FalkorDB module
-      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v5
       with:
         path: falkordb.so
         key: falkordb-${{ env.FALKORDB_VERSION }}-${{ runner.os }}-${{ runner.arch }}
@@ -206,13 +206,13 @@ jobs:
       run: cat versions.cfg >> $GITHUB_ENV
     
     - name: Cache Redis submodule
-      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v5
       with:
         path: redis.submodule
         key: redis-${{ env.REDIS_VERSION }}-linux-x64
     
     - name: Cache FalkorDB module
-      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v5
       with:
         path: falkordb.so
         key: falkordb-${{ env.FALKORDB_VERSION }}-${{ runner.os }}-${{ runner.arch }}
@@ -260,13 +260,13 @@ jobs:
       run: cat versions.cfg >> $GITHUB_ENV
     
     - name: Cache Redis submodule
-      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v5
       with:
         path: redis.submodule
         key: redis-${{ env.REDIS_VERSION }}-linux-arm64
     
     - name: Cache FalkorDB module
-      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v5
       with:
         path: falkordb.so
         key: falkordb-${{ env.FALKORDB_VERSION }}-${{ runner.os }}-${{ runner.arch }}
@@ -314,13 +314,13 @@ jobs:
       run: cat versions.cfg >> $GITHUB_ENV
     
     - name: Cache Redis submodule
-      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v5
       with:
         path: redis.submodule
         key: redis-${{ env.REDIS_VERSION }}-macos
     
     - name: Cache FalkorDB module
-      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v5
       with:
         path: falkordb.so
         key: falkordb-${{ env.FALKORDB_VERSION }}-${{ runner.os }}-${{ runner.arch }}
