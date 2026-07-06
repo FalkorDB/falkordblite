@@ -2,4 +2,4 @@
 redis>=7.4.0
 falkordb>=1.6.1
 psutil
-setuptools>=82.0.1
+setuptools>=83.0.0
