@@ -13,6 +13,15 @@ from redislite.async_falkordb_client import AsyncFalkorDB
 from redislite.async_client import AsyncRedis
 
 
+def udf_library_names(udf_list):
+    """Library names from ``udf_list()``: RESP3 returns dicts, RESP2 returns flat lists."""
+    return [
+        udf['library_name'] if isinstance(udf, dict) else udf[1]
+        for udf in udf_list
+        if isinstance(udf, dict) or (len(udf) > 1 and udf[0] == 'library_name')
+    ]
+
+
 class TestAsyncFalkorDBClient(unittest.TestCase):
     """Test async FalkorDB client functionality"""
 
@@ -149,8 +158,7 @@ class TestAsyncFalkorDBClient(unittest.TestCase):
                 
                 # Verify UDF was loaded by listing UDFs
                 udf_list = await db.udf_list()
-                # udf_list returns format: [['library_name', '<name>', 'functions', [<func_list>]], ...]
-                lib_names = [udf[1] for udf in udf_list if len(udf) > 1 and udf[0] == 'library_name']
+                lib_names = udf_library_names(udf_list)
                 self.assertIn(lib_name, lib_names)
                 
                 # Use the UDF in a query
@@ -242,8 +250,7 @@ class TestAsyncFalkorDBClient(unittest.TestCase):
                 
                 # List UDFs - both should be present
                 udf_list = await db.udf_list()
-                # udf_list returns format: [['library_name', '<name>', 'functions', [<func_list>]], ...]
-                lib_names = [udf[1] for udf in udf_list if len(udf) > 1 and udf[0] == 'library_name']
+                lib_names = udf_library_names(udf_list)
                 self.assertIn(lib1, lib_names)
                 self.assertIn(lib2, lib_names)
                 
@@ -252,7 +259,7 @@ class TestAsyncFalkorDBClient(unittest.TestCase):
                 
                 # Verify only lib2 remains
                 udf_list = await db.udf_list()
-                lib_names = [udf[1] for udf in udf_list if len(udf) > 1 and udf[0] == 'library_name']
+                lib_names = udf_library_names(udf_list)
                 self.assertNotIn(lib1, lib_names)
                 self.assertIn(lib2, lib_names)
                 
