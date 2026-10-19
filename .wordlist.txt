@@ -30,6 +30,7 @@ RedisLite
 Redislite
 TODO
 Taskset
+UUID
 Ubuntu
 XCode
 aiohttp
@@ -116,6 +117,7 @@ repos
 req
 reqs
 ro
+runnable
 runtime
 sdist
 semver
