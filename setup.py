@@ -194,6 +194,9 @@ class BuildRedis(build):
         cmd = [
             'make',
             'MALLOC=libc',
+            # Pass PREFIX on the command line: Redis >= 8.10's top-level
+            # Makefile ignores it from the environment under GNU Make 4.3.
+            'PREFIX=' + REDIS_PATH,
             'V=' + str(self.verbose),
         ]
 

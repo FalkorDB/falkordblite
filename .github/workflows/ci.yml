@@ -125,6 +125,10 @@ jobs:
     - name: Install build dependencies
       run: |
         brew install gcc make libomp
+        # Use the Command Line Tools toolchain so ld matches the CLT SDK that
+        # Redis' tests/modules Makefile links against (Xcode's ld is older).
+        sudo xcode-select -s /Library/Developer/CommandLineTools
+        ld -v
     
     - name: Install Python dependencies
       run: |
@@ -328,6 +332,10 @@ jobs:
     - name: Install build dependencies
       run: |
         brew install gcc make libomp
+        # Use the Command Line Tools toolchain so ld matches the CLT SDK that
+        # Redis' tests/modules Makefile links against (Xcode's ld is older).
+        sudo xcode-select -s /Library/Developer/CommandLineTools
+        ld -v
         python -m pip install --upgrade pip
         pip install setuptools wheel build certifi
         pip install -r requirements.txt
@@ -484,6 +492,10 @@ jobs:
     - name: Install system dependencies
       run: |
         brew install gcc make libomp
+        # Use the Command Line Tools toolchain so ld matches the CLT SDK that
+        # Redis' tests/modules Makefile links against (Xcode's ld is older).
+        sudo xcode-select -s /Library/Developer/CommandLineTools
+        ld -v
     
     - name: Create fresh virtual environment in /tmp
       working-directory: /tmp
