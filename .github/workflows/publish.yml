@@ -54,6 +54,10 @@ jobs:
       if: runner.os == 'macOS'
       run: |
         brew install gcc make libomp
+        # Use the Command Line Tools toolchain so ld matches the CLT SDK that
+        # Redis' tests/modules Makefile links against (Xcode's ld is older).
+        sudo xcode-select -s /Library/Developer/CommandLineTools
+        ld -v
     
     - name: Install Python dependencies
       run: |
