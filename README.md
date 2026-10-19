@@ -4,6 +4,7 @@
 [![Publish to PyPI](https://github.com/FalkorDB/falkordblite/actions/workflows/publish.yml/badge.svg)](https://github.com/FalkorDB/falkordblite/actions/workflows/publish.yml)
 [![Coverage](https://codecov.io/gh/FalkorDB/falkordblite/branch/master/graph/badge.svg)](https://codecov.io/gh/FalkorDB/falkordblite)
 [![License](https://img.shields.io/pypi/l/falkordblite.svg)](https://pypi.python.org/pypi/falkordblite/)
+[![Python](https://img.shields.io/pypi/pyversions/falkordblite.svg)](https://pypi.python.org/pypi/falkordblite/)
 
 ## Description
 
@@ -38,9 +39,23 @@ This will test:
 - FalkorDB instance creation
 - Basic graph operations
 
+## Quick Start
+
+> **Note:** The package installs as `falkordblite` but the import path uses the `redislite` module name:
+
+```python
+from redislite.falkordb_client import FalkorDB
+
+db = FalkorDB('/tmp/my.db')
+g = db.select_graph('mygraph')
+g.query('CREATE (n:Person {name: "Alice"}) RETURN n')
+result = g.query('MATCH (n:Person) RETURN n.name')
+print(result.result_set)  # [['Alice']]
+```
+
 ## Requirements
 
-The falkordblite module requires Python 3.12 or higher.
+The falkordblite module requires **Python 3.12 or higher**.
 
 ### Runtime Requirements
 
@@ -73,6 +88,8 @@ The package includes both Redis and the FalkorDB module, automatically configure
 ## Examples
 
 Here are some examples of using the falkordblite module.
+
+For a complete runnable workflow (create DB → create graph → add nodes/edges → parameterized queries → persistence verification → multi-graph isolation → cleanup), see [`examples/complete_workflow.py`](examples/complete_workflow.py).
 
 ### Using FalkorDB Graph Database
 
@@ -417,6 +434,47 @@ asyncio.run(main())
 
 For complete async API documentation including web framework integration, see [docs/ASYNC_API.md](docs/ASYNC_API.md).
 
+## Testing with FalkorDBLite
+
+FalkorDBLite works well in test suites. Here's a recommended pattern using pytest with session-scoped fixtures and per-test graph isolation:
+
+```python
+import uuid
+import pytest
+from redislite.falkordb_client import FalkorDB
+
+@pytest.fixture(scope="session")
+def db(tmp_path_factory):
+    """Session-scoped FalkorDB instance shared across all tests."""
+    db_path = str(tmp_path_factory.mktemp("data") / "test.db")
+    instance = FalkorDB(db_path)
+    yield instance
+
+@pytest.fixture
+def graph(db):
+    """Per-test isolated graph with a unique name."""
+    graph_name = f"test_{uuid.uuid4().hex[:8]}"
+    g = db.select_graph(graph_name)
+    yield g
+    g.delete()
+
+def test_create_node(graph):
+    graph.query('CREATE (n:Person {name: "Alice"})')
+    result = graph.query('MATCH (n:Person) RETURN n.name')
+    assert result.result_set == [["Alice"]]
+
+def test_parameterized_query(graph):
+    graph.query('CREATE (n:Item {name: $name})', params={"name": "Widget"})
+    result = graph.query('MATCH (n:Item) RETURN n.name')
+    assert result.result_set == [["Widget"]]
+```
+
+Key points:
+- **Session-scoped DB fixture** avoids spinning up a new Redis server for each test
+- **UUID-based graph names** ensure complete isolation between tests
+- **`g.delete()` cleanup** removes graph data after each test
+- Use `tmp_path_factory` so database files are automatically cleaned up
+
 ## More Information
 
 FalkorDBLite combines the power of Redis and FalkorDB graph database in an embedded Python package.
@@ -499,6 +557,8 @@ $ python setup.py build
 # Install in editable mode for development
 $ pip install -e .
 ```
+
+**Note:** Editable installs (`pip install -e .`) require running `python setup.py build` first to compile Redis and download the FalkorDB module binaries. Running `pip install -e .` without the build step will fail because the required binaries won't be present.
 
 The `python setup.py build` command will:
 - Compile Redis from source
