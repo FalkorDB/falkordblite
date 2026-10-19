@@ -24,7 +24,7 @@ def _read_versions_cfg():
 
 
 _VERSIONS = _read_versions_cfg()
-redis_version = os.environ.get('REDIS_VERSION', _VERSIONS.get('REDIS_VERSION', '8.6.2'))
+redis_version = os.environ.get('REDIS_VERSION', _VERSIONS.get('REDIS_VERSION', '8.10.2'))
 url = f'https://github.com/redis/redis/archive/refs/tags/{redis_version}.tar.gz'
 
 
