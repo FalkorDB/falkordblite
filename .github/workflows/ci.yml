@@ -23,10 +23,10 @@ jobs:
       fail-fast: false
     
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
     
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+      uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
       with:
         python-version: ${{ matrix.python-version }}
         cache: pip
@@ -36,13 +36,13 @@ jobs:
       run: cat versions.cfg >> $GITHUB_ENV
     
     - name: Cache Redis submodule
-      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
       with:
         path: redis.submodule
         key: redis-${{ env.REDIS_VERSION }}-linux-x64
     
     - name: Cache FalkorDB module
-      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
       with:
         path: falkordb.so
         key: falkordb-${{ env.FALKORDB_VERSION }}-${{ runner.os }}-${{ runner.arch }}
@@ -83,8 +83,9 @@ jobs:
         python verify_install.py
     
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6.0.0
+      uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
       with:
+        token: ${{ secrets.CODECOV_TOKEN }}
         files: ./coverage.xml
         flags: unittests
         name: codecov-umbrella
@@ -101,10 +102,10 @@ jobs:
       fail-fast: false
     
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
     
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+      uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
       with:
         python-version: ${{ matrix.python-version }}
         cache: pip
@@ -114,13 +115,13 @@ jobs:
       run: cat versions.cfg >> $GITHUB_ENV
     
     - name: Cache Redis submodule
-      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
       with:
         path: redis.submodule
         key: redis-${{ env.REDIS_VERSION }}-macos
     
     - name: Cache FalkorDB module
-      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
       with:
         path: falkordb.so
         key: falkordb-${{ env.FALKORDB_VERSION }}-${{ runner.os }}-${{ runner.arch }}
@@ -128,6 +129,10 @@ jobs:
     - name: Install build dependencies
       run: |
         brew install gcc make libomp
+        # Use the Command Line Tools toolchain so ld matches the CLT SDK that
+        # Redis' tests/modules Makefile links against (Xcode's ld is older).
+        sudo xcode-select -s /Library/Developer/CommandLineTools
+        ld -v
     
     - name: Install Python dependencies
       run: |
@@ -153,8 +158,9 @@ jobs:
         python verify_install.py
     
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6.0.0
+      uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
       with:
+        token: ${{ secrets.CODECOV_TOKEN }}
         files: ./coverage.xml
         flags: unittests-macos
         name: codecov-macos
@@ -165,10 +171,10 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
     
     - name: Set up Python
-      uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+      uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
       with:
         python-version: '3.12'
         cache: pip
@@ -199,10 +205,10 @@ jobs:
       fail-fast: false
     
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
     
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+      uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
       with:
         python-version: ${{ matrix.python-version }}
         cache: pip
@@ -212,13 +218,13 @@ jobs:
       run: cat versions.cfg >> $GITHUB_ENV
     
     - name: Cache Redis submodule
-      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
       with:
         path: redis.submodule
         key: redis-${{ env.REDIS_VERSION }}-linux-x64
     
     - name: Cache FalkorDB module
-      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
       with:
         path: falkordb.so
         key: falkordb-${{ env.FALKORDB_VERSION }}-${{ runner.os }}-${{ runner.arch }}
@@ -255,10 +261,10 @@ jobs:
       fail-fast: false
     
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
     
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+      uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
       with:
         python-version: ${{ matrix.python-version }}
         cache: pip
@@ -268,13 +274,13 @@ jobs:
       run: cat versions.cfg >> $GITHUB_ENV
     
     - name: Cache Redis submodule
-      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
       with:
         path: redis.submodule
         key: redis-${{ env.REDIS_VERSION }}-linux-arm64
     
     - name: Cache FalkorDB module
-      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
       with:
         path: falkordb.so
         key: falkordb-${{ env.FALKORDB_VERSION }}-${{ runner.os }}-${{ runner.arch }}
@@ -311,10 +317,10 @@ jobs:
       fail-fast: false
     
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
     
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+      uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
       with:
         python-version: ${{ matrix.python-version }}
         cache: pip
@@ -324,13 +330,13 @@ jobs:
       run: cat versions.cfg >> $GITHUB_ENV
     
     - name: Cache Redis submodule
-      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
       with:
         path: redis.submodule
         key: redis-${{ env.REDIS_VERSION }}-macos
     
     - name: Cache FalkorDB module
-      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
       with:
         path: falkordb.so
         key: falkordb-${{ env.FALKORDB_VERSION }}-${{ runner.os }}-${{ runner.arch }}
@@ -338,6 +344,10 @@ jobs:
     - name: Install build dependencies
       run: |
         brew install gcc make libomp
+        # Use the Command Line Tools toolchain so ld matches the CLT SDK that
+        # Redis' tests/modules Makefile links against (Xcode's ld is older).
+        sudo xcode-select -s /Library/Developer/CommandLineTools
+        ld -v
         python -m pip install --upgrade pip
         pip install setuptools wheel build certifi
         pip install -r requirements.txt
@@ -364,10 +374,10 @@ jobs:
       fail-fast: false
     
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
     
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+      uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
       with:
         python-version: ${{ matrix.python-version }}
         cache: pip
@@ -423,10 +433,10 @@ jobs:
       fail-fast: false
     
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
     
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+      uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
       with:
         python-version: ${{ matrix.python-version }}
         cache: pip
@@ -482,10 +492,10 @@ jobs:
       fail-fast: false
     
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
     
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+      uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
       with:
         python-version: ${{ matrix.python-version }}
         cache: pip
@@ -500,6 +510,10 @@ jobs:
     - name: Install system dependencies
       run: |
         brew install gcc make libomp
+        # Use the Command Line Tools toolchain so ld matches the CLT SDK that
+        # Redis' tests/modules Makefile links against (Xcode's ld is older).
+        sudo xcode-select -s /Library/Developer/CommandLineTools
+        ld -v
     
     - name: Create fresh virtual environment in /tmp
       working-directory: /tmp
