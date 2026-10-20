@@ -45,8 +45,8 @@ When run from the command line this will print a dump of information about
 the module and it's build information.
 """
 from __future__ import print_function
-from distutils.spawn import find_executable
 import os
+import shutil
 from .__init__ import __version__, __git_version__, __source_url__, \
     __git_hash__, __git_origin__, __git_branch__, __redis_server_info__, \
     __redis_executable__
@@ -58,7 +58,7 @@ def debug_info_list():
     :return:
     """
     info = []
-    redis_server = find_executable('redis-server')
+    redis_server = shutil.which('redis-server')
     if __redis_executable__:  # pragma: no cover
         redis_server = __redis_executable__
     info.append("Redislite debug information:")
