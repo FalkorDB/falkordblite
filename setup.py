@@ -62,7 +62,10 @@ REDIS_PATH = os.path.join(BASEPATH, 'redis.submodule')
 REDIS_SERVER_METADATA = {}
 REDIS_VERSION = os.environ.get('REDIS_VERSION', _VERSIONS.get('REDIS_VERSION', '8.10.2'))
 REDIS_URL = f'https://github.com/redis/redis/archive/refs/tags/{REDIS_VERSION}.tar.gz'
-FALKORDB_VERSION = os.environ.get('FALKORDB_VERSION', _VERSIONS.get('FALKORDB_VERSION', 'v4.22.1'))
+FALKORDB_VERSION = os.environ.get('FALKORDB_VERSION', _VERSIONS.get('FALKORDB_VERSION', 'v6.0.4'))
+FALKORDB_MACOS_VERSION = os.environ.get(
+    'FALKORDB_MACOS_VERSION', _VERSIONS.get('FALKORDB_MACOS_VERSION', 'v4.22.1')
+)
 # Executables to install to virtualenv's bin/ directory (standalone CLI tools only)
 INSTALL_BIN_EXECUTABLES = ['redis-server', 'redis-cli']
 install_scripts = ''
@@ -135,7 +138,8 @@ def download_falkordb_module():
     else:
         raise Exception(f'Unsupported platform: {system}')
     
-    falkordb_url = f'https://github.com/FalkorDB/FalkorDB/releases/download/{FALKORDB_VERSION}/{module_name}'
+    module_version = FALKORDB_MACOS_VERSION if system == 'darwin' else FALKORDB_VERSION
+    falkordb_url = f'https://github.com/FalkorDB/FalkorDB/releases/download/{module_version}/{module_name}'
     module_path = os.path.join(BASEPATH, 'falkordb.so')
     
     print(f'Downloading FalkorDB module from {falkordb_url}')
