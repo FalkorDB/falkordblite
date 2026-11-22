@@ -86,6 +86,13 @@ Redis ({REDIS_VERSION})
   Full upstream license text: LICENSES/Redis-LICENSE.txt
   Redis BSD-3-Clause contributions notice: LICENSES/Redis-REDISCONTRIBUTIONS.txt
   Hiredis BSD-3-Clause license (bundled in redis-cli): LICENSES/hiredis-COPYING
+  Redis-linked dependencies and license texts:
+    Lua (MIT): LICENSES/Redis-Lua-COPYRIGHT
+    linenoise (BSD-3-Clause): LICENSES/Redis-linenoise-LICENSE.txt
+    xxHash (BSD-2-Clause): LICENSES/Redis-xxHash-LICENSE
+    fpconv (BSL-1.0): LICENSES/Redis-fpconv-LICENSE.txt
+    hdr_histogram (CC0-1.0 or BSD-2-Clause): LICENSES/Redis-hdr_histogram-LICENSE.txt
+    TRE (BSD-2-Clause): LICENSES/Redis-TRE-LICENSE
   Redis third-party and copyright notices: {redis}/REDISCONTRIBUTIONS.txt
   Hiredis source and license: {redis}/deps/hiredis
   Third-party source and notices: {redis}/deps
@@ -97,7 +104,7 @@ FalkorDB module ({FALKORDB_VERSION})
     {falkordb_repo}/tree/{falkordb_tag}/deps
   Full upstream notice and license texts: LICENSES/FalkorDB-LICENSE*
   Statically linked LLVM OpenMP runtime (libomp): Apache-2.0 with LLVM exception
-  License: LICENSES/LLVM-LICENSE.txt; source: https://github.com/llvm/llvm-project/tree/main/openmp
+  License: LICENSES/LLVM-LICENSE.txt; source: https://github.com/llvm/llvm-project/tree/llvmorg-20.1.0/openmp
 
 OpenSSL 3 (where bundled)
   Copyright (c) 1998-2026 The OpenSSL Project
@@ -114,15 +121,13 @@ GCC OpenMP runtime, libgomp (where bundled)
         path.write_text(notice, encoding='utf-8')
 
 
-def _redis_source_version():
-    version_file = pathlib.Path(REDIS_PATH) / 'src' / 'version.h'
+def _redis_source_tag():
+    version_file = pathlib.Path(REDIS_PATH) / 'FALKORDBLITE_VERSION'
     try:
-        for line in version_file.read_text(encoding='utf-8').splitlines():
-            if line.startswith('#define REDIS_VERSION "'):
-                return line.split('"')[1]
+        return version_file.read_text(encoding='utf-8').strip()
     except FileNotFoundError:
-        pass
-    return None
+        # Redis sources may be absent from an sdist or build cache.
+        return None
 
 
 def ensure_build_sources():
@@ -130,10 +135,10 @@ def ensure_build_sources():
     module_path = pathlib.Path(BASEPATH) / 'falkordb.so'
     module_version_path = pathlib.Path(BASEPATH) / 'falkordb.version'
 
-    if _redis_source_version() != REDIS_VERSION:
+    if _redis_source_tag() != REDIS_VERSION:
         logger.debug('Downloading Redis source version %s', REDIS_VERSION)
         download_redis_submodule()
-        if _redis_source_version() != REDIS_VERSION:
+        if _redis_source_tag() != REDIS_VERSION:
             raise RuntimeError(f'Redis source does not match requested version {REDIS_VERSION}')
 
     try:
@@ -180,6 +185,9 @@ def download_redis_submodule():
 
         print(f'Moving {os.path.join(tempdir, directory)} -> redis.submodule')
         shutil.move(os.path.join(tempdir, directory), 'redis.submodule')
+        pathlib.Path(REDIS_PATH, 'FALKORDBLITE_VERSION').write_text(
+            REDIS_VERSION + '\n', encoding='utf-8'
+        )
 
         # print('Updating jemalloc')
         # os.system('(cd redis.submodule;./deps/update-jemalloc.sh 4.0.4)')
@@ -221,6 +229,7 @@ def download_falkordb_module():
     
     print(f'Downloading FalkorDB module from {falkordb_url}')
     try:
+        pathlib.Path(BASEPATH, 'falkordb.version').unlink(missing_ok=True)
         # Create SSL context that uses system certificates
         ssl_context = get_ssl_context()
         # Use urlopen with context and manually save the file

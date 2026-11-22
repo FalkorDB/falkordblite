@@ -26,17 +26,15 @@ class TestFalkorDBBuildVersion(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             redis_path = root / 'redis.submodule'
-            (redis_path / 'src').mkdir(parents=True)
-            (redis_path / 'src' / 'version.h').write_text(
-                '#define REDIS_VERSION "old"\n', encoding='utf-8'
-            )
+            redis_path.mkdir()
+            (redis_path / 'FALKORDBLITE_VERSION').write_text('old\n', encoding='utf-8')
             module_path = root / 'falkordb.so'
             module_path.write_bytes(b'old module')
             (root / 'falkordb.version').write_text('old\n', encoding='utf-8')
 
             def refresh_redis():
-                (redis_path / 'src' / 'version.h').write_text(
-                    f'#define REDIS_VERSION "{setup.REDIS_VERSION}"\n', encoding='utf-8'
+                (redis_path / 'FALKORDBLITE_VERSION').write_text(
+                    setup.REDIS_VERSION + '\n', encoding='utf-8'
                 )
 
             def refresh_falkordb():
@@ -60,9 +58,9 @@ class TestFalkorDBBuildVersion(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             redis_path = root / 'redis.submodule'
-            (redis_path / 'src').mkdir(parents=True)
-            (redis_path / 'src' / 'version.h').write_text(
-                f'#define REDIS_VERSION "{setup.REDIS_VERSION}"\n', encoding='utf-8'
+            redis_path.mkdir()
+            (redis_path / 'FALKORDBLITE_VERSION').write_text(
+                setup.REDIS_VERSION + '\n', encoding='utf-8'
             )
             module_path = root / 'falkordb.so'
             module_path.write_bytes(b'module')
@@ -78,6 +76,44 @@ class TestFalkorDBBuildVersion(unittest.TestCase):
 
             redis.assert_not_called()
             falkordb.assert_not_called()
+
+    def test_prerelease_tag_uses_recorded_source_tag_not_version_header(self):
+        with patch.dict(os.environ, {'REDIS_VERSION': '8.0-rc1'}, clear=True):
+            setup = load_setup()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            redis_path = root / 'redis.submodule'
+            redis_path.mkdir()
+            (redis_path / 'FALKORDBLITE_VERSION').write_text('8.0-rc1\n', encoding='utf-8')
+            (redis_path / 'src').mkdir()
+            (redis_path / 'src' / 'version.h').write_text(
+                '#define REDIS_VERSION "7.9.240"\n', encoding='utf-8'
+            )
+            (root / 'falkordb.so').write_bytes(b'module')
+            (root / 'falkordb.version').write_text(
+                setup.FALKORDB_VERSION + '\n', encoding='utf-8'
+            )
+
+            with patch.object(setup, 'BASEPATH', directory), \
+                    patch.object(setup, 'REDIS_PATH', str(redis_path)), \
+                    patch.object(setup, 'download_redis_submodule') as redis:
+                setup.ensure_build_sources()
+
+            redis.assert_not_called()
+
+    def test_failed_module_refresh_invalidates_old_version_marker(self):
+        setup = load_setup()
+        with tempfile.TemporaryDirectory() as directory:
+            marker = Path(directory) / 'falkordb.version'
+            marker.write_text('old\n', encoding='utf-8')
+            with patch.object(setup, 'BASEPATH', directory), \
+                    patch.object(setup, 'get_ssl_context', return_value=None), \
+                    patch('platform.system', return_value='Linux'), \
+                    patch('platform.machine', return_value='x86_64'), \
+                    patch.object(setup.urllib.request, 'urlopen', side_effect=OSError('download failed')):
+                with self.assertRaises(OSError):
+                    setup.download_falkordb_module()
+            self.assertFalse(marker.exists())
 
     def test_notice_uses_the_selected_source_tags(self):
         overrides = {'REDIS_VERSION': '8-test', 'FALKORDB_VERSION': 'v-test'}
