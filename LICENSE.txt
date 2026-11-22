@@ -45,6 +45,8 @@ with it over a socket. The binaries retain their upstream license terms:
   Available License 2.0 (RSALv2), Server Side Public License v1 (SSPL-1.0), or
   GNU Affero General Public License v3 (AGPL-3.0-only), at the licensee's choice.
   See LICENSES/Redis-LICENSE.txt.
+  Portions remain under BSD-3-Clause; see LICENSES/Redis-REDISCONTRIBUTIONS.txt.
+- Hiredis (bundled in redis-cli): BSD-3-Clause. See LICENSES/hiredis-COPYING.
 - FalkorDB (redislite/bin/falkordb.so): Server Side Public License v1 (SSPL-1.0)
   or GNU Affero General Public License v3 (AGPL-3.0-only), at the licensee's
   choice. See LICENSES/FalkorDB-LICENSE, LICENSES/FalkorDB-LICENSE-SSPL, and
@@ -54,6 +56,8 @@ with it over a socket. The binaries retain their upstream license terms:
 - GCC OpenMP runtime (libgomp, where bundled): GNU General Public License v3 or
   later with the GCC Runtime Library Exception 3.1. See LICENSES/GCC-COPYING3
   and LICENSES/GCC-COPYING.RUNTIME.
+- LLVM OpenMP runtime (libomp, statically linked into the macOS FalkorDB module):
+  Apache-2.0 with LLVM exception. See LICENSES/LLVM-LICENSE.txt.
 
 The Python wrapper also depends on psutil, which is distributed separately
 under the BSD-3-Clause license and is copyrighted by Jay Loden, Dave Daeschler,

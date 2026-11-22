@@ -1,4 +1,5 @@
 AGPLv3
+AGPLv
 API
 APIs
 Async
@@ -14,6 +15,7 @@ EOL
 FastAPI
 FalkorDB
 FalkorDBLite
+GPLv
 Fedora
 GitHub
 GitHub's
@@ -27,11 +29,13 @@ OpenSSL
 PyPI
 RHEL
 RSALv2
+RSALv
 Redhat
 Redis
 RedisLite
 Redislite
 SSPLv1
+SSPLv
 TODO
 Taskset
 UUID

@@ -492,9 +492,12 @@ The bundled binaries retain their own licenses:
 | Component | License |
 | --- | --- |
 | Redis (`redis-server`, `redis-cli`) | Your choice of RSALv2, SSPLv1, or AGPLv3. See the [Redis license text](https://github.com/FalkorDB/falkordblite/blob/master/LICENSES/Redis-LICENSE.txt). |
+| Redis BSD-licensed portions | BSD-3-Clause. See [Redis contributions](https://github.com/FalkorDB/falkordblite/blob/master/LICENSES/Redis-REDISCONTRIBUTIONS.txt). |
+| Hiredis (bundled in `redis-cli`) | BSD-3-Clause. See the [hiredis license](https://github.com/FalkorDB/falkordblite/blob/master/LICENSES/hiredis-COPYING). |
 | FalkorDB module (`falkordb.so`) | Your choice of [SSPLv1](https://github.com/FalkorDB/falkordblite/blob/master/LICENSES/FalkorDB-LICENSE-SSPL) or [AGPLv3](https://github.com/FalkorDB/falkordblite/blob/master/LICENSES/FalkorDB-LICENSE-AGPL). See the [upstream license notice](https://github.com/FalkorDB/falkordblite/blob/master/LICENSES/FalkorDB-LICENSE). |
 | OpenSSL 3 (`libssl`, `libcrypto`), where bundled | [Apache License 2.0](https://github.com/FalkorDB/falkordblite/blob/master/LICENSES/OpenSSL-LICENSE.txt). |
 | GCC OpenMP runtime (`libgomp`), where bundled | [GPLv3 or later](https://github.com/FalkorDB/falkordblite/blob/master/LICENSES/GCC-COPYING3) with the [GCC Runtime Library Exception 3.1](https://github.com/FalkorDB/falkordblite/blob/master/LICENSES/GCC-COPYING.RUNTIME). |
+| LLVM OpenMP runtime (`libomp`, statically linked into the macOS FalkorDB module) | [Apache-2.0 with LLVM exception](https://github.com/FalkorDB/falkordblite/blob/master/LICENSES/LLVM-LICENSE.txt). |
 
 The separate Python dependency [psutil](https://github.com/giampaolo/psutil/blob/master/LICENSE) is licensed under BSD-3-Clause.
 The wheel includes the full texts and a `NOTICE` with the exact upstream source tags and third-party notices under `.dist-info/licenses/`.

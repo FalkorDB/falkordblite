@@ -21,6 +21,64 @@ def load_setup():
 
 
 class TestFalkorDBBuildVersion(unittest.TestCase):
+    def test_cached_artifacts_with_different_versions_are_refreshed(self):
+        setup = load_setup()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            redis_path = root / 'redis.submodule'
+            (redis_path / 'src').mkdir(parents=True)
+            (redis_path / 'src' / 'version.h').write_text(
+                '#define REDIS_VERSION "old"\n', encoding='utf-8'
+            )
+            module_path = root / 'falkordb.so'
+            module_path.write_bytes(b'old module')
+            (root / 'falkordb.version').write_text('old\n', encoding='utf-8')
+
+            def refresh_redis():
+                (redis_path / 'src' / 'version.h').write_text(
+                    f'#define REDIS_VERSION "{setup.REDIS_VERSION}"\n', encoding='utf-8'
+                )
+
+            def refresh_falkordb():
+                module_path.write_bytes(b'new module')
+                (root / 'falkordb.version').write_text(
+                    setup.FALKORDB_VERSION + '\n', encoding='utf-8'
+                )
+
+            with patch.object(setup, 'BASEPATH', directory), \
+                    patch.object(setup, 'REDIS_PATH', str(redis_path)), \
+                    patch.object(setup, 'download_redis_submodule', side_effect=refresh_redis) as redis, \
+                    patch.object(setup, 'download_falkordb_module', side_effect=refresh_falkordb) as falkordb:
+                setup.ensure_build_sources()
+
+            redis.assert_called_once_with()
+            falkordb.assert_called_once_with()
+            self.assertEqual(module_path.read_bytes(), b'new module')
+
+    def test_matching_cached_artifacts_are_reused(self):
+        setup = load_setup()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            redis_path = root / 'redis.submodule'
+            (redis_path / 'src').mkdir(parents=True)
+            (redis_path / 'src' / 'version.h').write_text(
+                f'#define REDIS_VERSION "{setup.REDIS_VERSION}"\n', encoding='utf-8'
+            )
+            module_path = root / 'falkordb.so'
+            module_path.write_bytes(b'module')
+            (root / 'falkordb.version').write_text(
+                setup.FALKORDB_VERSION + '\n', encoding='utf-8'
+            )
+
+            with patch.object(setup, 'BASEPATH', directory), \
+                    patch.object(setup, 'REDIS_PATH', str(redis_path)), \
+                    patch.object(setup, 'download_redis_submodule') as redis, \
+                    patch.object(setup, 'download_falkordb_module') as falkordb:
+                setup.ensure_build_sources()
+
+            redis.assert_not_called()
+            falkordb.assert_not_called()
+
     def test_notice_uses_the_selected_source_tags(self):
         overrides = {'REDIS_VERSION': '8-test', 'FALKORDB_VERSION': 'v-test'}
         for env in ({}, overrides):
