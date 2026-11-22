@@ -47,7 +47,7 @@ with it over a socket. The binaries retain their upstream license terms:
   See LICENSES/Redis-LICENSE.txt.
   Portions remain under BSD-3-Clause; see LICENSES/Redis-REDISCONTRIBUTIONS.txt.
 - Hiredis (bundled in redis-cli): BSD-3-Clause. See LICENSES/hiredis-COPYING.
-- Redis-linked libraries: Lua (MIT), linenoise (BSD-3-Clause), xxHash and TRE
+- Redis-linked libraries: Lua (MIT), linenoise (BSD-2-Clause), xxHash and TRE
   (BSD-2-Clause), fpconv (BSL-1.0), and hdr_histogram (CC0-1.0 or BSD-2-Clause).
   See their respective files under LICENSES/Redis-*.
 - FalkorDB (redislite/bin/falkordb.so): Server Side Public License v1 (SSPL-1.0)

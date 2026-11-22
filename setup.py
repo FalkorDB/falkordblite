@@ -88,7 +88,7 @@ Redis ({REDIS_VERSION})
   Hiredis BSD-3-Clause license (bundled in redis-cli): LICENSES/hiredis-COPYING
   Redis-linked dependencies and license texts:
     Lua (MIT): LICENSES/Redis-Lua-COPYRIGHT
-    linenoise (BSD-3-Clause): LICENSES/Redis-linenoise-LICENSE.txt
+    linenoise (BSD-2-Clause): LICENSES/Redis-linenoise-LICENSE.txt
     xxHash (BSD-2-Clause): LICENSES/Redis-xxHash-LICENSE
     fpconv (BSL-1.0): LICENSES/Redis-fpconv-LICENSE.txt
     hdr_histogram (CC0-1.0 or BSD-2-Clause): LICENSES/Redis-hdr_histogram-LICENSE.txt
