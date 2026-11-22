@@ -168,6 +168,28 @@ class TestAsyncFalkorDBClient(unittest.TestCase):
 
         asyncio.run(run_test())
 
+    def test_concurrent_async_close_stops_shared_server_and_persists_data(self):
+        async def run_test():
+            first = AsyncRedis(dbfilename=self.db_file)
+            second = AsyncRedis(dbfilename=self.db_file)
+            process = psutil.Process(first.pid)
+            try:
+                await first.set('key', 'persisted')
+                await asyncio.gather(first.close(), second.close())
+                self.assertFalse(process.is_running())
+
+                reopened = AsyncRedis(dbfilename=self.db_file)
+                reopened_process = psutil.Process(reopened.pid)
+                try:
+                    self.assertEqual(await reopened.get('key'), 'persisted')
+                finally:
+                    await reopened.close()
+                    self.stop_test_server(reopened_process)
+            finally:
+                self.stop_test_server(process)
+
+        asyncio.run(run_test())
+
     def test_async_list_graphs(self):
         """Test listing graphs asynchronously"""
         async def run_test():
