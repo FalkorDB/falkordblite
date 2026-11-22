@@ -18,7 +18,7 @@ jobs:
       contents: read
     strategy:
       matrix:
-        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest]  # macos-latest is ARM64 (Apple Silicon)
+        os: [ubuntu-24.04, ubuntu-24.04-arm, macos-latest]  # macos-latest is ARM64 (Apple Silicon)
         python-version: ['3.12', '3.13', '3.14']
     
     steps:
@@ -36,7 +36,7 @@ jobs:
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
       with:
         path: redis.submodule
-        key: redis-${{ env.REDIS_VERSION }}-${{ runner.os }}-${{ runner.arch }}
+        key: redis-${{ env.REDIS_VERSION }}-${{ matrix.os }}-${{ runner.arch }}
     
     - name: Cache FalkorDB module
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
