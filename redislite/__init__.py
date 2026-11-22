@@ -50,6 +50,7 @@ Example:
 """
 import json
 import os
+from importlib.metadata import PackageNotFoundError, version
 
 
 __version__ = str('0.0.0')
@@ -64,11 +65,9 @@ __redis_server_version__ = str('')
 __falkordb_module__ = str('')
 
 try:
-    # Use importlib.metadata instead of deprecated pkg_resources
-    from importlib.metadata import version
-    __git_version__ = version("redislite")
+    __git_version__ = version("falkordblite")
     __version__ = __git_version__
-except (ImportError, Exception):  # pragma: no cover
+except PackageNotFoundError:  # pragma: no cover
     pass
     
 

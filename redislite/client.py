@@ -19,15 +19,35 @@ import redis
 import shutil
 import signal
 import subprocess
+import threading
 import tempfile
 import time
 import sys
+import weakref
 from . import configuration
 from . import __redis_executable__
 from . import __falkordb_module__
 
 
 logger = logging.getLogger(__name__)  # pylint: disable=C0103
+
+_cleanup_locks_guard = threading.Lock()
+_cleanup_locks = weakref.WeakValueDictionary()
+
+
+def _cleanup_lock(pidfile, socket_file):
+    """Return a process-local cleanup lock shared by clients for one server."""
+    server_path = pidfile or socket_file
+    if not server_path:
+        return _cleanup_locks_guard
+
+    server_path = os.path.abspath(server_path)
+    with _cleanup_locks_guard:
+        lock = _cleanup_locks.get(server_path)
+        if lock is None:
+            lock = threading.RLock()
+            _cleanup_locks[server_path] = lock
+        return lock
 
 
 class RedisLiteException(Exception):
@@ -83,6 +103,10 @@ class RedisMixin(object):
         return not psutil.pid_exists(pid)
 
     def _cleanup(self, sys_modules=None):
+        with _cleanup_lock(self.pidfile, self.socket_file):
+            self._cleanup_server(sys_modules)
+
+    def _cleanup_server(self, sys_modules=None):
         """
         Stop the redis-server for this instance if it's running
         :return:
@@ -105,10 +129,6 @@ class RedisMixin(object):
                     'Shutting down redis server with pid of %r', pid
                 )
                 try:
-                    # Skip shutdown if this client is managed by an async wrapper
-                    if getattr(self, '_async_managed', False):
-                        logger.debug('Skipping shutdown for async-managed client')
-                        return  # Let async wrapper handle shutdown
                     self.shutdown(save=True, now=True, force=True)
                     try:  # pragma: no cover
                         process = psutil.Process(pid)

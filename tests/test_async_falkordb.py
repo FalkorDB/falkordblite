@@ -9,6 +9,7 @@ import os
 import shutil
 import tempfile
 import unittest
+import psutil
 from redislite.async_falkordb_client import AsyncFalkorDB
 from redislite.async_client import AsyncRedis
 
@@ -24,6 +25,12 @@ def udf_library_names(udf_list):
 
 class TestAsyncFalkorDBClient(unittest.TestCase):
     """Test async FalkorDB client functionality"""
+
+    @staticmethod
+    def stop_test_server(process):
+        if process.is_running():
+            process.terminate()
+            process.wait(timeout=10)
 
     def setUp(self):
         """Set up test fixtures"""
@@ -90,10 +97,15 @@ class TestAsyncFalkorDBClient(unittest.TestCase):
     def test_async_context_manager(self):
         """Test using AsyncFalkorDB as a context manager"""
         async def run_test():
-            async with AsyncFalkorDB(dbfilename=self.db_file) as db:
-                graph = db.select_graph('test')
-                self.assertIsNotNone(graph)
-            # Connection should be closed automatically
+            db = AsyncFalkorDB(dbfilename=self.db_file)
+            process = psutil.Process(db.client.pid)
+            try:
+                async with db:
+                    graph = db.select_graph('test')
+                    self.assertIsNotNone(graph)
+                self.assertFalse(process.is_running())
+            finally:
+                self.stop_test_server(process)
         
         asyncio.run(run_test())
 
@@ -114,6 +126,68 @@ class TestAsyncFalkorDBClient(unittest.TestCase):
             
             await redis_conn.close()
         
+        asyncio.run(run_test())
+
+    def test_async_close_stops_server_and_persists_data(self):
+        async def run_test():
+            client = AsyncRedis(dbfilename=self.db_file)
+            process = psutil.Process(client.pid)
+            try:
+                await client.set('key', 'persisted')
+                await client.close()
+                self.assertFalse(process.is_running())
+                await client.close()
+
+                reopened = AsyncRedis(dbfilename=self.db_file)
+                reopened_process = psutil.Process(reopened.pid)
+                try:
+                    self.assertEqual(await reopened.get('key'), 'persisted')
+                finally:
+                    await reopened.close()
+                    self.stop_test_server(reopened_process)
+            finally:
+                self.stop_test_server(process)
+
+        asyncio.run(run_test())
+
+    def test_async_close_preserves_shared_server_until_last_client(self):
+        async def run_test():
+            first = AsyncRedis(dbfilename=self.db_file)
+            process = psutil.Process(first.pid)
+            try:
+                second = AsyncRedis(dbfilename=self.db_file)
+                self.assertEqual(second.pid, process.pid)
+                await second.set('key', 'value')
+                await first.close()
+                self.assertTrue(process.is_running())
+                self.assertEqual(await second.get('key'), 'value')
+                await second.close()
+                self.assertFalse(process.is_running())
+            finally:
+                self.stop_test_server(process)
+
+        asyncio.run(run_test())
+
+    def test_concurrent_async_close_stops_shared_server_and_persists_data(self):
+        async def run_test():
+            first = AsyncRedis(dbfilename=self.db_file)
+            second = AsyncRedis(dbfilename=self.db_file)
+            process = psutil.Process(first.pid)
+            try:
+                await first.set('key', 'persisted')
+                await asyncio.gather(first.close(), second.close())
+                self.assertFalse(process.is_running())
+
+                reopened = AsyncRedis(dbfilename=self.db_file)
+                reopened_process = psutil.Process(reopened.pid)
+                try:
+                    self.assertEqual(await reopened.get('key'), 'persisted')
+                finally:
+                    await reopened.close()
+                    self.stop_test_server(reopened_process)
+            finally:
+                self.stop_test_server(process)
+
         asyncio.run(run_test())
 
     def test_async_list_graphs(self):
