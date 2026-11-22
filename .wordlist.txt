@@ -6,6 +6,7 @@ Async
 AsyncFalkorDB
 AsyncGraph
 AsyncRedis
+BSL
 CLI
 Codecov
 Cypher
@@ -19,7 +20,10 @@ GPLv
 Fedora
 GitHub
 GitHub's
+Hiredis
 Homebrew
+LLVM
+Lua
 Makefile
 MonkeyPatch
 OAuth
@@ -37,6 +41,7 @@ Redislite
 SSPLv1
 SSPLv
 TODO
+TRE
 Taskset
 UUID
 Ubuntu
@@ -73,11 +78,14 @@ endif
 env
 falkordb
 falkordblite
+fpconv
 filesystem
 filesystems
 freenode
 gcc
 github
+hdr
+hiredis
 hostname
 hostnames
 https
@@ -92,6 +100,7 @@ json
 ldd
 libomp
 lifecycle
+linenoise
 localhost
 macOS
 makefile
@@ -105,6 +114,7 @@ namespaces
 opensource
 pre
 preinstalled
+prerelease
 psutil
 py
 pycodestyle
@@ -162,5 +172,6 @@ workflows
 wsl
 www
 xcode
+xxHash
 yaml
 yml
