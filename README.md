@@ -483,7 +483,21 @@ FalkorDBLite combines the power of Redis and FalkorDB graph database in an embed
 - FalkorDB Documentation: https://docs.falkordb.com/
 - FalkorDB Python Client: https://github.com/FalkorDB/falkordb-py
 
-FalkorDBLite is Free software under the New BSD license, see LICENSE.txt for details.
+## Licensing
+
+The FalkorDBLite Python wrapper is licensed under the [BSD 3-Clause License](https://github.com/FalkorDB/falkordblite/blob/master/LICENSE.txt).
+It runs Redis as a separate process and communicates with it over a socket.
+The bundled binaries retain their own licenses:
+
+| Component | License |
+| --- | --- |
+| Redis (`redis-server`, `redis-cli`) | Your choice of RSALv2, SSPLv1, or AGPLv3. See the [Redis license text](https://github.com/FalkorDB/falkordblite/blob/master/LICENSES/Redis-LICENSE.txt). |
+| FalkorDB module (`falkordb.so`) | Your choice of [SSPLv1](https://github.com/FalkorDB/falkordblite/blob/master/LICENSES/FalkorDB-LICENSE-SSPL) or [AGPLv3](https://github.com/FalkorDB/falkordblite/blob/master/LICENSES/FalkorDB-LICENSE-AGPL). See the [upstream license notice](https://github.com/FalkorDB/falkordblite/blob/master/LICENSES/FalkorDB-LICENSE). |
+| OpenSSL 3 (`libssl`, `libcrypto`), where bundled | [Apache License 2.0](https://github.com/FalkorDB/falkordblite/blob/master/LICENSES/OpenSSL-LICENSE.txt). |
+| GCC OpenMP runtime (`libgomp`), where bundled | [GPLv3 or later](https://github.com/FalkorDB/falkordblite/blob/master/LICENSES/GCC-COPYING3) with the [GCC Runtime Library Exception 3.1](https://github.com/FalkorDB/falkordblite/blob/master/LICENSES/GCC-COPYING.RUNTIME). |
+
+The separate Python dependency [psutil](https://github.com/giampaolo/psutil/blob/master/LICENSE) is licensed under BSD-3-Clause.
+The wheel includes the full texts and a `NOTICE` with the exact upstream source tags and third-party notices under `.dist-info/licenses/`.
 
 ## Building from Source
 
@@ -528,6 +542,11 @@ Then start the bash shell and install the python-dev package as follows:
 `apt-get install python-dev`
 
 ### Building and Installing
+
+When updating the Redis or FalkorDB pins in `versions.cfg`, review the license
+expression in `setup.cfg`, the upstream texts in `LICENSES/`, and the licensing
+table above in the same change. The build regenerates `NOTICE` from the selected
+versions; commit the refreshed notice for the default pins.
 
 To build from source:
 

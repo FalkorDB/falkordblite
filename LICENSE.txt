@@ -1,10 +1,9 @@
-Redislite license and trademark information
-===========================================
+FalkorDBLite license and trademark information
+==============================================
 
 Three clause BSD license
 ------------------------
-Every file in the Redislite distribution with the exception of third party files
-specified in the list below contain the following license:
+The FalkorDBLite Python wrapper is licensed under the following terms:
 
 Copyright (c) 2015, Yahoo Inc.
 All rights reserved.
@@ -35,19 +34,29 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-Third party files and licenses
+Third-party files and licenses
 ------------------------------
 
-Redislite uses source code from third parties. All this code contains BSD or
-BSD-compatible license. The following is a list of third party files and
-information about their copyright.
+The wheel aggregates the BSD-3-Clause Python wrapper and separately licensed
+binaries. The wrapper runs the server as a separate process and communicates
+with it over a socket. The binaries retain their upstream license terms:
 
-    Redislite uses Redis software in the redis.submodule directory.  Most of the
-    Redis source code was written and is copyrighted by Salvatore Sanfilippo and
-    Pieter Noordhuis. A list of other contributors can be found in the git
-    history. Redis is released under the Three clause BSD License.
+- Redis (redislite/bin/redis-server and redislite/bin/redis-cli): Redis Source
+  Available License 2.0 (RSALv2), Server Side Public License v1 (SSPL-1.0), or
+  GNU Affero General Public License v3 (AGPL-3.0-only), at the licensee's choice.
+  See LICENSES/Redis-LICENSE.txt.
+- FalkorDB (redislite/bin/falkordb.so): Server Side Public License v1 (SSPL-1.0)
+  or GNU Affero General Public License v3 (AGPL-3.0-only), at the licensee's
+  choice. See LICENSES/FalkorDB-LICENSE, LICENSES/FalkorDB-LICENSE-SSPL, and
+  LICENSES/FalkorDB-LICENSE-AGPL.
+- OpenSSL 3 (libssl and libcrypto, where bundled): Apache License 2.0.
+  See LICENSES/OpenSSL-LICENSE.txt.
+- GCC OpenMP runtime (libgomp, where bundled): GNU General Public License v3 or
+  later with the GCC Runtime Library Exception 3.1. See LICENSES/GCC-COPYING3
+  and LICENSES/GCC-COPYING.RUNTIME.
 
+The Python wrapper also depends on psutil, which is distributed separately
+under the BSD-3-Clause license and is copyrighted by Jay Loden, Dave Daeschler,
+and Giampaolo Rodola.
 
-    Redislite uses the psutil python module which is copyrighted by Jay Loden,
-    Dave Daeshler and Giampaolo Rodola.  The psutil python module is released
-    under the Three Clause BSD license.
+See NOTICE for the exact Redis and FalkorDB source tags and upstream notices.

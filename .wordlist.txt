@@ -1,3 +1,4 @@
+AGPLv3
 API
 APIs
 Async
@@ -22,12 +23,15 @@ MonkeyPatch
 OAuth
 OSX
 OpenMP
+OpenSSL
 PyPI
 RHEL
+RSALv2
 Redhat
 Redis
 RedisLite
 Redislite
+SSPLv1
 TODO
 Taskset
 UUID
