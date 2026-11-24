@@ -6,9 +6,15 @@ import importlib.util
 import io
 import os
 from pathlib import Path
+import shutil
+import subprocess
+import sys
+import tarfile
 import tempfile
 import unittest
 from unittest.mock import patch
+
+from setuptools import Distribution
 
 
 def load_setup():
@@ -160,3 +166,84 @@ class TestFalkorDBBuildVersion(unittest.TestCase):
                             context=None,
                         )
                         self.assertEqual((Path(directory) / 'falkordb.so').read_bytes(), b'module')
+
+    def test_source_distribution_excludes_cached_platform_binaries(self):
+        setup = load_setup()
+        source = Path(__file__).resolve().parents[1]
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for name in ('setup.py', 'setup.cfg', 'pyproject.toml', 'MANIFEST.in',
+                         'README.md', 'versions.cfg', 'LICENSE.txt'):
+                shutil.copy2(source / name, root / name)
+            for name in ('LICENSES', 'src'):
+                shutil.copytree(source / name, root / name)
+
+            redis = root / 'redis.submodule'
+            (redis / 'bin').mkdir(parents=True)
+            (redis / 'src').mkdir()
+            (redis / 'deps' / 'lua' / 'src').mkdir(parents=True)
+            (redis / 'FALKORDBLITE_VERSION').write_text(setup.REDIS_VERSION + '\n')
+            (redis / 'src' / 'server.c').write_text('/* Redis source */')
+            (redis / 'bin' / 'redis-server').write_bytes(b'cached server')
+            (redis / 'src' / 'redis-server').write_bytes(b'cached server')
+            (redis / 'src' / 'server.o').write_bytes(b'cached object')
+            (redis / 'src' / '.make-settings').write_text('cached settings')
+            (redis / 'deps' / 'lua' / 'src' / 'liblua.a').write_bytes(b'cached library')
+            (redis / 'deps' / 'lua' / 'src' / 'lua').write_bytes(b'cached executable')
+            (root / 'falkordb.so').write_bytes(b'cached module')
+            (root / 'falkordb.version').write_text(setup.FALKORDB_VERSION + '\n')
+            package = root / 'redislite'
+            (package / 'bin').mkdir(parents=True)
+            (package / '__init__.py').write_text('')
+            (package / 'package_metadata.json').write_text('{}')
+            (package / 'bin' / 'redis-server').write_bytes(b'cached server')
+            (package / 'bin' / 'falkordb.so').write_bytes(b'cached module')
+
+            subprocess.run(
+                [sys.executable, 'setup.py', 'sdist', '--dist-dir', 'dist'],
+                cwd=root, check=True, capture_output=True, text=True,
+            )
+            with tarfile.open(next((root / 'dist').glob('*.tar.gz'))) as archive:
+                paths = {
+                    Path(*Path(name).parts[1:]).as_posix()
+                    for name in archive.getnames()
+                }
+            self.assertIn('redis.submodule/FALKORDBLITE_VERSION', paths)
+            self.assertIn('redis.submodule/src/server.c', paths)
+            for path in ('redis.submodule/bin/redis-server',
+                         'redis.submodule/src/redis-server',
+                         'redis.submodule/src/server.o',
+                         'redis.submodule/src/.make-settings',
+                         'redis.submodule/deps/lua/src/liblua.a',
+                         'redis.submodule/deps/lua/src/lua'):
+                self.assertNotIn(path, paths)
+            self.assertNotIn('falkordb.so', paths)
+            self.assertNotIn('falkordb.version', paths)
+            self.assertFalse(any(path.startswith('redislite/bin/') for path in paths))
+
+    def test_arm_macos_wheels_do_not_claim_intel_support(self):
+        setup = load_setup()
+        command = setup.BdistWheel(Distribution())
+        platforms = (
+            ('macosx_10_13_universal2', 'macosx_11_0_arm64'),
+            ('macosx_12_0_universal2', 'macosx_12_0_arm64'),
+            ('macosx_12_0_arm64', 'macosx_12_0_arm64'),
+        )
+        for original, expected in platforms:
+            with self.subTest(original=original), \
+                    patch.object(setup.bdist_wheel, 'get_tag',
+                                 return_value=('cp315', 'cp315', original)), \
+                    patch.object(sys, 'platform', 'darwin'), \
+                    patch('platform.machine', return_value='arm64'):
+                self.assertEqual(command.get_tag(), ('cp315', 'cp315', expected))
+
+    def test_intel_macos_source_build_fails_before_download(self):
+        setup = load_setup()
+        with tempfile.TemporaryDirectory() as directory, \
+                patch.object(setup, 'BASEPATH', directory), \
+                patch('platform.system', return_value='Darwin'), \
+                patch('platform.machine', return_value='x86_64'), \
+                patch.object(setup.urllib.request, 'urlopen') as urlopen:
+            with self.assertRaisesRegex(RuntimeError, 'macOS.*x86_64'):
+                setup.download_falkordb_module()
+            urlopen.assert_not_called()

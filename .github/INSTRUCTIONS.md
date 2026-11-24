@@ -10,7 +10,7 @@ FalkorDBLite is a self-contained Python interface to the FalkorDB graph database
 - Compatible Redis key-value operations
 - **Async API support** for non-blocking operations (AsyncFalkorDB, AsyncRedis)
 - Secure default configuration (accessible only by creating user)
-- Cross-platform support (Linux x86_64/ARM64, macOS ARM64/x86_64)
+- Cross-platform support (Linux x86_64/ARM64, macOS 12+ ARM64)
 
 ## Project Structure
 
@@ -52,7 +52,7 @@ falkordblite/
 ## Development Setup
 
 ### Prerequisites
-- Python 3.12, 3.13, or 3.14 (tested and supported versions in CI)
+- Python 3.12, 3.13, 3.14, or 3.15 (tested and supported versions in CI)
 - Build tools (gcc, make, python3-dev on Linux; Xcode CLI tools on macOS)
 - macOS: OpenMP runtime library (`brew install libomp`)
 
@@ -207,13 +207,13 @@ The build process automatically detects platform and downloads appropriate Falko
 - **Linux x86_64**: falkordb-x64.so
 - **Linux ARM64**: falkordb-arm64v8.so
 - **macOS ARM64**: falkordb-macos-arm64v8.so
-- **macOS x86_64**: Falls back to ARM64 binary with performance warning (native x86_64 binaries not available)
+- **macOS x86_64**: Unsupported (native x86_64 binaries are not available)
 
 ## CI/CD Workflows
 
 ### CI Workflow (`.github/workflows/ci.yml`)
 Runs on push and PR to master/main branches:
-- **Test**: Python 3.12, 3.13, 3.14 on Ubuntu and macOS with full test suite
+- **Test**: Python 3.12, 3.13, 3.14, 3.15 on Ubuntu and macOS with full test suite
 - **Verification**: Runs verify_install.py to ensure installation works
 - **Lint**: Code quality checks with pylint and pycodestyle
 - **Build**: Source distribution and wheel packages

@@ -20,10 +20,19 @@ graft redis.submodule/src
 graft redis.submodule/tests
 graft redis.submodule/utils
 
+prune redis.submodule/bin
+prune redis.submodule/deps/xxhash/cachedObjs
+recursive-exclude redis.submodule *.o *.d *.a *.so *.dylib .make-*
+exclude redis.submodule/src/redis-server redis.submodule/src/redis-cli
+exclude redis.submodule/src/redis-benchmark redis.submodule/src/redis-sentinel
+exclude redis.submodule/src/redis-check-aof redis.submodule/src/redis-check-rdb
+exclude redis.submodule/src/release.h
+exclude redis.submodule/deps/lua/src/lua redis.submodule/deps/lua/src/luac
+
 include src/dummy.c
 include redislite/package_metadata.json
-include falkordb.so
-include falkordb.version
-recursive-include redislite/bin *
+exclude falkordb.so
+exclude falkordb.version
+prune redislite/bin
 
 exclude *dummy.o
