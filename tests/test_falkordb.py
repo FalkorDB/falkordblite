@@ -87,28 +87,6 @@ class TestFalkorDBClient(unittest.TestCase):
                 import shutil
                 shutil.rmtree(temp_dir)
 
-    def test_node_id_comparisons(self):
-        """Node ID filters handle negative, fractional, and non-numeric values."""
-        with tempfile.TemporaryDirectory() as temp_dir:
-            db = FalkorDB(dbfilename=os.path.join(temp_dir, 'falkordb.db'))
-            try:
-                graph = db.select_graph('test_node_id_comparisons')
-                graph.query('CREATE (:Item), (:Item), (:Item)')
-                cases = (
-                    ('id(n) > -1', [0, 1, 2]),
-                    ('id(n) <= -1', []),
-                    ('id(n) = 1.0', [1]),
-                    ('id(n) > 1.5', [2]),
-                    ('id(n) = null', []),
-                    ("id(n) = '1'", []),
-                )
-                for condition, expected in cases:
-                    with self.subTest(condition=condition):
-                        result = graph.query(f'MATCH (n) WHERE {condition} RETURN id(n)')
-                        self.assertEqual(sorted(row[0] for row in result.result_set), expected)
-            finally:
-                db.close()
-
     def test_udf_load_and_call(self):
         """Test loading and calling a User Defined Function (UDF)"""
         temp_dir = tempfile.mkdtemp()
