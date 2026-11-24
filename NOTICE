@@ -17,11 +17,11 @@ Redis (8.10.2)
   Hiredis source and license: https://github.com/redis/redis/tree/8.10.2/deps/hiredis
   Third-party source and notices: https://github.com/redis/redis/tree/8.10.2/deps
 
-FalkorDB module (v6.2.0)
-  Source: https://github.com/FalkorDB/FalkorDB/tree/v6.2.0
-  Upstream license notice: https://github.com/FalkorDB/FalkorDB/blob/v6.2.0/LICENSE
+FalkorDB module (v6.2.1)
+  Source: https://github.com/FalkorDB/FalkorDB/tree/v6.2.1
+  Upstream license notice: https://github.com/FalkorDB/FalkorDB/blob/v6.2.1/LICENSE
   Third-party components and their notices (follow the pinned submodules):
-    https://github.com/FalkorDB/FalkorDB/tree/v6.2.0/deps
+    https://github.com/FalkorDB/FalkorDB/tree/v6.2.1/deps
   Full upstream notice and license texts: LICENSES/FalkorDB-LICENSE*
   Statically linked LLVM OpenMP runtime (libomp): Apache-2.0 with LLVM exception
   License: LICENSES/LLVM-LICENSE.txt; source: https://github.com/llvm/llvm-project/tree/llvmorg-20.1.0/openmp
