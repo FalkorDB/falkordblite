@@ -483,9 +483,10 @@ if bdist_wheel:
         def get_tag(self):
             python_tag, abi_tag, platform_tag = super().get_tag()
             if (sys.platform == 'darwin' and platform.machine().lower() in ('arm64', 'aarch64')
-                    and platform_tag.endswith('_universal2')):
+                    and platform_tag.startswith('macosx_')
+                    and platform_tag.endswith(('_universal2', '_arm64'))):
                 _, major, minor, _ = platform_tag.split('_')
-                major, minor = max((int(major), int(minor)), (11, 0))
+                major, minor = max((int(major), int(minor)), (12, 0))
                 platform_tag = f'macosx_{major}_{minor}_arm64'
             return python_tag, abi_tag, platform_tag
 else:

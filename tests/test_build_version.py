@@ -225,8 +225,10 @@ class TestFalkorDBBuildVersion(unittest.TestCase):
         setup = load_setup()
         command = setup.BdistWheel(Distribution())
         platforms = (
-            ('macosx_10_13_universal2', 'macosx_11_0_arm64'),
+            ('macosx_10_13_universal2', 'macosx_12_0_arm64'),
             ('macosx_12_0_universal2', 'macosx_12_0_arm64'),
+            ('macosx_13_0_universal2', 'macosx_13_0_arm64'),
+            ('macosx_11_0_arm64', 'macosx_12_0_arm64'),
             ('macosx_12_0_arm64', 'macosx_12_0_arm64'),
         )
         for original, expected in platforms:
