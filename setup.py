@@ -133,6 +133,7 @@ def _redis_source_tag():
 
 def ensure_build_sources():
     """Ensure cached sources and binaries match the versions recorded in NOTICE."""
+    _falkordb_module_name()
     module_path = pathlib.Path(BASEPATH) / 'falkordb.so'
     module_version_path = pathlib.Path(BASEPATH) / 'falkordb.version'
 
@@ -194,13 +195,10 @@ def download_redis_submodule():
         # os.system('(cd redis.submodule;./deps/update-jemalloc.sh 4.0.4)')
 
 
-def download_falkordb_module():
-    """Download FalkorDB module binary from GitHub releases"""
-    # Determine the platform and architecture and select appropriate module
+def _falkordb_module_name():
     machine = platform.machine().lower()
     system = platform.system().lower()
     
-    # Determine module name based on platform and architecture
     if system == 'darwin':  # macOS
         if machine in ['arm64', 'aarch64']:
             module_name = 'falkordb-macos-arm64v8.so'
@@ -219,7 +217,12 @@ def download_falkordb_module():
             raise Exception(f'Unsupported Linux architecture: {machine}')
     else:
         raise Exception(f'Unsupported platform: {system}')
-    
+    return module_name
+
+
+def download_falkordb_module():
+    """Download FalkorDB module binary from GitHub releases"""
+    module_name = _falkordb_module_name()
     falkordb_url = f'https://github.com/FalkorDB/FalkorDB/releases/download/{FALKORDB_VERSION}/{module_name}'
     module_path = os.path.join(BASEPATH, 'falkordb.so')
     

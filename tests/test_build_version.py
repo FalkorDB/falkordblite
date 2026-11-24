@@ -249,3 +249,24 @@ class TestFalkorDBBuildVersion(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, 'macOS.*x86_64'):
                 setup.download_falkordb_module()
             urlopen.assert_not_called()
+
+    def test_intel_macos_build_rejects_cached_module(self):
+        setup = load_setup()
+        for machine in ('x86_64', 'amd64'):
+            with self.subTest(machine=machine), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                redis_path = root / 'redis.submodule'
+                redis_path.mkdir()
+                (redis_path / 'FALKORDBLITE_VERSION').write_text(setup.REDIS_VERSION + '\n')
+                (root / 'falkordb.so').write_bytes(b'cached module')
+                (root / 'falkordb.version').write_text(setup.FALKORDB_VERSION + '\n')
+                with patch.object(setup, 'BASEPATH', directory), \
+                        patch.object(setup, 'REDIS_PATH', str(redis_path)), \
+                        patch('platform.system', return_value='Darwin'), \
+                        patch('platform.machine', return_value=machine), \
+                        patch.object(setup, 'download_redis_submodule') as redis, \
+                        patch.object(setup, 'download_falkordb_module') as falkordb:
+                    with self.assertRaisesRegex(RuntimeError, 'macOS.*x86_64'):
+                        setup.ensure_build_sources()
+                    redis.assert_not_called()
+                    falkordb.assert_not_called()
