@@ -64,7 +64,7 @@ REDIS_PATH = os.path.join(BASEPATH, 'redis.submodule')
 REDIS_SERVER_METADATA = {}
 REDIS_VERSION = os.environ.get('REDIS_VERSION', _VERSIONS.get('REDIS_VERSION', '8.10.2'))
 REDIS_URL = f'https://github.com/redis/redis/archive/refs/tags/{REDIS_VERSION}.tar.gz'
-FALKORDB_VERSION = os.environ.get('FALKORDB_VERSION', _VERSIONS.get('FALKORDB_VERSION', 'v6.2.0'))
+FALKORDB_VERSION = os.environ.get('FALKORDB_VERSION', _VERSIONS.get('FALKORDB_VERSION', 'v6.2.1'))
 # Executables to install to virtualenv's bin/ directory (standalone CLI tools only)
 INSTALL_BIN_EXECUTABLES = ['redis-server', 'redis-cli']
 install_scripts = ''
