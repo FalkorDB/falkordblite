@@ -19,7 +19,7 @@ jobs:
       contents: read
     strategy:
       matrix:
-        python-version: ['3.12', '3.13', '3.14']
+        python-version: ['3.12', '3.13', '3.14', '3.15']
       fail-fast: false
     
     steps:
@@ -31,7 +31,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
     
     - name: Load versions
-      run: cat versions.cfg >> $GITHUB_ENV
+      run: cat versions.cfg >> "$GITHUB_ENV"
     
     - name: Cache Redis submodule
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
@@ -98,7 +98,7 @@ jobs:
       contents: read
     strategy:
       matrix:
-        python-version: ['3.12', '3.13', '3.14']
+        python-version: ['3.12', '3.13', '3.14', '3.15']
       fail-fast: false
     
     steps:
@@ -110,7 +110,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
     
     - name: Load versions
-      run: cat versions.cfg >> $GITHUB_ENV
+      run: cat versions.cfg >> "$GITHUB_ENV"
     
     - name: Cache Redis submodule
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
@@ -196,10 +196,10 @@ jobs:
 
   build-wheels-linux:
     name: Build Wheels on Linux Python ${{ matrix.python-version }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
-        python-version: ['3.12', '3.13']
+        python-version: ['3.12', '3.13', '3.14', '3.15']
       fail-fast: false
     
     steps:
@@ -211,7 +211,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
     
     - name: Load versions
-      run: cat versions.cfg >> $GITHUB_ENV
+      run: cat versions.cfg >> "$GITHUB_ENV"
     
     - name: Cache Redis submodule
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
@@ -232,7 +232,7 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y build-essential gcc make python3-dev
         python -m pip install --upgrade pip
-        pip install setuptools wheel build certifi
+        pip install setuptools wheel build certifi auditwheel
         pip install -r requirements.txt
     
     - name: Build source distribution
@@ -243,6 +243,11 @@ jobs:
     - name: Build wheel
       run: |
         python setup.py bdist_wheel
+
+    - name: Repair wheel
+      run: |
+        auditwheel repair dist/*.whl -w dist/
+        rm dist/*-linux_*.whl
     
     - name: Upload artifacts
       uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
@@ -255,7 +260,7 @@ jobs:
     runs-on: ubuntu-24.04-arm
     strategy:
       matrix:
-        python-version: ['3.12', '3.13', '3.14']
+        python-version: ['3.12', '3.13', '3.14', '3.15']
       fail-fast: false
     
     steps:
@@ -267,7 +272,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
     
     - name: Load versions
-      run: cat versions.cfg >> $GITHUB_ENV
+      run: cat versions.cfg >> "$GITHUB_ENV"
     
     - name: Cache Redis submodule
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
@@ -288,7 +293,7 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y build-essential gcc make python3-dev
         python -m pip install --upgrade pip
-        pip install setuptools wheel build certifi
+        pip install setuptools wheel build certifi auditwheel
         pip install -r requirements.txt
     
     - name: Build source distribution
@@ -299,6 +304,11 @@ jobs:
     - name: Build wheel
       run: |
         python setup.py bdist_wheel
+
+    - name: Repair wheel
+      run: |
+        auditwheel repair dist/*.whl -w dist/
+        rm dist/*-linux_*.whl
     
     - name: Upload artifacts
       uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -309,9 +319,11 @@ jobs:
   build-wheels-macos:
     name: Build Wheels on macOS Python ${{ matrix.python-version }}
     runs-on: macos-latest
+    env:
+      MACOSX_DEPLOYMENT_TARGET: '12.0'
     strategy:
       matrix:
-        python-version: ['3.12', '3.13']
+        python-version: ['3.12', '3.13', '3.14', '3.15']
       fail-fast: false
     
     steps:
@@ -323,13 +335,13 @@ jobs:
         python-version: ${{ matrix.python-version }}
     
     - name: Load versions
-      run: cat versions.cfg >> $GITHUB_ENV
+      run: cat versions.cfg >> "$GITHUB_ENV"
     
     - name: Cache Redis submodule
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
       with:
         path: redis.submodule
-        key: redis-${{ env.REDIS_VERSION }}-macos
+        key: redis-${{ env.REDIS_VERSION }}-macos-target12
     
     - name: Cache FalkorDB module
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
@@ -347,12 +359,16 @@ jobs:
         sudo xcode-select -s /Library/Developer/CommandLineTools
         ld -v
         python -m pip install --upgrade pip
-        pip install setuptools wheel build certifi
+        pip install setuptools wheel build certifi delocate
         pip install -r requirements.txt
     
     - name: Build wheel
       run: |
         python setup.py bdist_wheel
+
+    - name: Repair wheel
+      run: |
+        delocate-wheel --require-archs arm64 -v dist/*.whl
     
     - name: Upload artifacts
       uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
@@ -363,12 +379,12 @@ jobs:
   test-wheel-linux:
     name: Test Wheel on Linux Python ${{ matrix.python-version }}
     needs: build-wheels-linux
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
     strategy:
       matrix:
-        python-version: ['3.12', '3.13']
+        python-version: ['3.12', '3.13', '3.14', '3.15']
       fail-fast: false
     
     steps:
@@ -384,6 +400,12 @@ jobs:
       with:
         name: dist-packages-Linux-X64-py${{ matrix.python-version }}
         path: dist/
+
+    - name: Download source distribution
+      uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+      with:
+        name: dist-packages-Linux-X64-py3.12
+        path: ${{ runner.temp }}/source-dist/
     
     - name: Install system dependencies
       run: |
@@ -399,7 +421,7 @@ jobs:
     - name: Install wheel
       working-directory: /tmp
       run: |
-        test_env/bin/pip install $GITHUB_WORKSPACE/dist/*.whl
+        test_env/bin/pip install "$GITHUB_WORKSPACE"/dist/*.whl
     
     - name: Test import
       working-directory: /tmp
@@ -409,7 +431,7 @@ jobs:
     - name: Run verification script
       working-directory: /tmp
       run: |
-        cp $GITHUB_WORKSPACE/verify_install.py .
+        cp "$GITHUB_WORKSPACE/verify_install.py" .
         test_env/bin/python verify_install.py
     
     - name: Test basic functionality
@@ -417,15 +439,22 @@ jobs:
       run: |
         test_env/bin/python -c "from redislite.falkordb_client import FalkorDB; db = FalkorDB(); g = db.select_graph('wheel_test'); result = g.query('CREATE (n:WheelTest {installed: true}) RETURN n'); print('✓ Wheel installation works correctly'); g.delete()"
 
+    - name: Test source distribution
+      working-directory: /tmp
+      run: |
+        python -m venv test_sdist_env
+        test_sdist_env/bin/python -m pip install --no-cache-dir "$RUNNER_TEMP"/source-dist/*.tar.gz
+        test_sdist_env/bin/python verify_install.py
+
   test-wheel-linux-arm:
     name: Test Wheel on Linux ARM64 Python ${{ matrix.python-version }}
-    needs: build-wheels-linux-arm
+    needs: [build-wheels-linux-arm, build-wheels-linux]
     runs-on: ubuntu-24.04-arm
     permissions:
       contents: read
     strategy:
       matrix:
-        python-version: ['3.12', '3.13', '3.14']
+        python-version: ['3.12', '3.13', '3.14', '3.15']
       fail-fast: false
     
     steps:
@@ -441,6 +470,12 @@ jobs:
       with:
         name: dist-packages-Linux-ARM64-py${{ matrix.python-version }}
         path: dist/
+
+    - name: Download source distribution
+      uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+      with:
+        name: dist-packages-Linux-X64-py3.12
+        path: ${{ runner.temp }}/source-dist/
     
     - name: Install system dependencies
       run: |
@@ -456,7 +491,7 @@ jobs:
     - name: Install wheel
       working-directory: /tmp
       run: |
-        test_env/bin/pip install $GITHUB_WORKSPACE/dist/*.whl
+        test_env/bin/pip install "$GITHUB_WORKSPACE"/dist/*.whl
     
     - name: Test import
       working-directory: /tmp
@@ -466,7 +501,7 @@ jobs:
     - name: Run verification script
       working-directory: /tmp
       run: |
-        cp $GITHUB_WORKSPACE/verify_install.py .
+        cp "$GITHUB_WORKSPACE/verify_install.py" .
         test_env/bin/python verify_install.py
     
     - name: Test basic functionality
@@ -474,15 +509,22 @@ jobs:
       run: |
         test_env/bin/python -c "from redislite.falkordb_client import FalkorDB; db = FalkorDB(); g = db.select_graph('wheel_test'); result = g.query('CREATE (n:WheelTest {installed: true}) RETURN n'); print('✓ Wheel installation works correctly'); g.delete()"
 
+    - name: Test source distribution
+      working-directory: /tmp
+      run: |
+        python -m venv test_sdist_env
+        test_sdist_env/bin/python -m pip install --no-cache-dir "$RUNNER_TEMP"/source-dist/*.tar.gz
+        test_sdist_env/bin/python verify_install.py
+
   test-wheel-macos:
     name: Test Wheel on macOS Python ${{ matrix.python-version }}
-    needs: build-wheels-macos
+    needs: [build-wheels-macos, build-wheels-linux]
     runs-on: macos-latest
     permissions:
       contents: read
     strategy:
       matrix:
-        python-version: ['3.12', '3.13']
+        python-version: ['3.12', '3.13', '3.14', '3.15']
       fail-fast: false
     
     steps:
@@ -498,6 +540,12 @@ jobs:
       with:
         name: dist-packages-macOS-ARM64-py${{ matrix.python-version }}
         path: dist/
+
+    - name: Download source distribution
+      uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+      with:
+        name: dist-packages-Linux-X64-py3.12
+        path: ${{ runner.temp }}/source-dist/
     
     - name: Install system dependencies
       run: |
@@ -516,7 +564,7 @@ jobs:
     - name: Install wheel
       working-directory: /tmp
       run: |
-        test_env/bin/pip install $GITHUB_WORKSPACE/dist/*.whl
+        test_env/bin/pip install "$GITHUB_WORKSPACE"/dist/*.whl
     
     - name: Test import
       working-directory: /tmp
@@ -526,10 +574,17 @@ jobs:
     - name: Run verification script
       working-directory: /tmp
       run: |
-        cp $GITHUB_WORKSPACE/verify_install.py .
+        cp "$GITHUB_WORKSPACE/verify_install.py" .
         test_env/bin/python verify_install.py
     
     - name: Test basic functionality
       working-directory: /tmp
       run: |
         test_env/bin/python -c "from redislite.falkordb_client import FalkorDB; db = FalkorDB(); g = db.select_graph('wheel_test'); result = g.query('CREATE (n:WheelTest {installed: true}) RETURN n'); print('✓ Wheel installation works correctly'); g.delete()"
+
+    - name: Test source distribution
+      working-directory: /tmp
+      run: |
+        python -m venv test_sdist_env
+        test_sdist_env/bin/python -m pip install --no-cache-dir "$RUNNER_TEMP"/source-dist/*.tar.gz
+        test_sdist_env/bin/python verify_install.py

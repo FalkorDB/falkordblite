@@ -8,6 +8,7 @@ import os
 import json
 import logging
 import pathlib
+import platform
 import subprocess
 import ssl
 
@@ -132,6 +133,7 @@ def _redis_source_tag():
 
 def ensure_build_sources():
     """Ensure cached sources and binaries match the versions recorded in NOTICE."""
+    _falkordb_module_name()
     module_path = pathlib.Path(BASEPATH) / 'falkordb.so'
     module_version_path = pathlib.Path(BASEPATH) / 'falkordb.version'
 
@@ -193,25 +195,17 @@ def download_redis_submodule():
         # os.system('(cd redis.submodule;./deps/update-jemalloc.sh 4.0.4)')
 
 
-def download_falkordb_module():
-    """Download FalkorDB module binary from GitHub releases"""
-    # Determine the platform and architecture and select appropriate module
-    import platform
+def _falkordb_module_name():
     machine = platform.machine().lower()
     system = platform.system().lower()
     
-    # Determine module name based on platform and architecture
     if system == 'darwin':  # macOS
         if machine in ['arm64', 'aarch64']:
             module_name = 'falkordb-macos-arm64v8.so'
         elif machine in ['x86_64', 'amd64']:
-            # Note: FalkorDB only provides macOS ARM64 binaries currently
-            # x86_64 Macs can run ARM64 binaries via Rosetta 2
-            print('*' * 80)
-            print('WARNING: Using ARM64 binaries on x86_64 Mac via Rosetta 2')
-            print('This may result in reduced performance compared to native binaries')
-            print('*' * 80)
-            module_name = 'falkordb-macos-arm64v8.so'
+            raise RuntimeError(
+                'macOS x86_64 is not supported; FalkorDB provides macOS ARM64 binaries only'
+            )
         else:
             raise Exception(f'Unsupported macOS architecture: {machine}')
     elif system == 'linux':
@@ -223,7 +217,12 @@ def download_falkordb_module():
             raise Exception(f'Unsupported Linux architecture: {machine}')
     else:
         raise Exception(f'Unsupported platform: {system}')
-    
+    return module_name
+
+
+def download_falkordb_module():
+    """Download FalkorDB module binary from GitHub releases"""
+    module_name = _falkordb_module_name()
     falkordb_url = f'https://github.com/FalkorDB/FalkorDB/releases/download/{FALKORDB_VERSION}/{module_name}'
     module_path = os.path.join(BASEPATH, 'falkordb.so')
     
@@ -483,6 +482,16 @@ if bdist_wheel:
             # Set platform name based on current platform to avoid dual arch tags
             if self.plat_name is None:
                 self.plat_name = distutils.util.get_platform().replace('-', '_').replace('.', '_')
+
+        def get_tag(self):
+            python_tag, abi_tag, platform_tag = super().get_tag()
+            if (sys.platform == 'darwin' and platform.machine().lower() in ('arm64', 'aarch64')
+                    and platform_tag.startswith('macosx_')
+                    and platform_tag.endswith(('_universal2', '_arm64'))):
+                _, major, minor, _ = platform_tag.split('_')
+                major, minor = max((int(major), int(minor)), (12, 0))
+                platform_tag = f'macosx_{major}_{minor}_arm64'
+            return python_tag, abi_tag, platform_tag
 else:
     BdistWheel = None
 

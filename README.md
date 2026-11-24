@@ -55,7 +55,13 @@ print(result.result_set)  # [['Alice']]
 
 ## Requirements
 
-The falkordblite module requires **Python 3.12 or higher**.
+The falkordblite module requires **Python 3.12 or higher**. Python 3.12 through
+3.15 are tested.
+
+Wheels are provided for Linux x86_64 and ARM64, and macOS 12 or later
+on Apple Silicon with a native ARM64 Python. Windows and Intel macOS are not
+supported. Building from source requires a C compiler and `make`, and downloads
+the platform-specific FalkorDB module from GitHub.
 
 ### Runtime Requirements
 
